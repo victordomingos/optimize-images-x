@@ -1,0 +1,9 @@
+
+
+Histórico de versões:
+====================
+
+
+---
+v.0.0 - 2021-04-03
+ * Initial project setup and planning.

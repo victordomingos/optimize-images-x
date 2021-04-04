@@ -1,4 +1,4 @@
-# Optimize Images X [![Github commits (since latest release)](https://img.shields.io/github/commits-since/victordomingos/optimize-images-x/latest.svg)](https://github.com/victordomingos/optimize-images-x) ![PyPI](https://img.shields.io/pypi/v/optimize-images-x) ![PyPI - Downloads](https://img.shields.io/pypi/dm/optimize-images-x)
+# Optimize Images X
 A desktop app written in Python, that unlocks the power of [Optimize Images](https://github.com/victordomingos/optimize-images) in a graphical user interface, to help you reduce the file size of images.
 
 Like Optimize Images, this application is intended to be almost pure Python, with no special dependencies

@@ -40,7 +40,7 @@ class AppSettings:
                   self.main_window_w,
                   self.main_window_h)
 
-        execute_with_params(self.db_path, sql, values=values)
+        execute_with_params(self.db_path, sql, values)
 
     def __str__(self) -> str:
         return f"AppSettings: X: {self.main_window_x}, Y: {self.main_window_y}, " \

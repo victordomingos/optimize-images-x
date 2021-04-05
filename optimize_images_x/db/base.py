@@ -14,6 +14,18 @@ def execute(db_path: str, sql: str) -> None:
         conn.executescript(sql)
 
 
+def execute_with_params(db_path: str, sql: str, values=[]) -> None:
+    """ Execute a SQL script, with no return value.
+
+    @param values: sql parameters to the execute command (e.g. values)
+    @param db_path: path to the database file
+    @param sql: the SQL instructions
+    """
+    with closing(sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)) as conn:
+        conn.execute(sql, values)
+        conn.commit()
+
+
 def query_one(db_path: str, sql: str) -> Any:
     """ Execute a SQL query and return the first row.
 
@@ -21,6 +33,7 @@ def query_one(db_path: str, sql: str) -> Any:
         @param sql: the SQL query
         """
     with closing(sqlite3.connect(db_path, detect_types=sqlite3.PARSE_DECLTYPES)) as conn:
+        conn.row_factory = sqlite3.Row
         with closing(conn.cursor()) as cursor:
             row = cursor.execute(sql).fetchone()
 

@@ -44,7 +44,8 @@ class ThanksWindow:
         self.thanksframe_bottom.pack(side=tk.BOTTOM)
         self.thanksRoot.bind("<Command-w>", self.close_window)
 
-    def close_window(self, event):
+    @staticmethod
+    def close_window(event):
         window = event.widget.winfo_toplevel()
         window.destroy()
         return "break"
@@ -110,9 +111,7 @@ class AboutWindow:
         self.app_lbl.pack()
         self.assin_lbl.pack()
         self.version_lbl.pack()
-        self.lbl_rep_count.pack()
-        self.lbl_contact_count.pack()
-        self.lbl_remessas_count.pack()
+        # self.lbl_rep_count.pack()
 
         self.copyright_lbl.pack()
         self.license_lbl.pack()
@@ -123,7 +122,8 @@ class AboutWindow:
         self.pframe_topo.focus()
         self.popupRoot.bind("<Command-w>", self.close_window)
 
-    def close_window(self, event):
+    @staticmethod
+    def close_window(event):
         window = event.widget.winfo_toplevel()
         window.destroy()
         return "break"

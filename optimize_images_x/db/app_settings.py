@@ -12,6 +12,7 @@ class AppSettings:
         self.main_window_y = 0
         self.main_window_w = 700
         self.main_window_h = 600
+        self.app_style = 'clam'
         self.load()
 
     def load(self):
@@ -22,6 +23,7 @@ class AppSettings:
         self.main_window_y = settings['main_window_y']
         self.main_window_w = settings['main_window_w']
         self.main_window_h = settings['main_window_h']
+        self.app_style = settings['app_style']
 
     def save(self):
         sql = """
@@ -31,6 +33,7 @@ class AppSettings:
                 main_window_y=?,
                 main_window_w=?,
                 main_window_h=?
+                app_style=?
             WHERE id=1
             """
 
@@ -38,10 +41,12 @@ class AppSettings:
                   self.main_window_x,
                   self.main_window_y,
                   self.main_window_w,
-                  self.main_window_h)
+                  self.main_window_h,
+                  self.app_style)
 
         execute_with_params(self.db_path, sql, values)
 
     def __str__(self) -> str:
         return f"AppSettings: X: {self.main_window_x}, Y: {self.main_window_y}, " \
-               f"W: {self.main_window_w}, H: {self.main_window_h}"
+               f"W: {self.main_window_w}, H: {self.main_window_h}, " \
+               f"Style: {self.app_style}"

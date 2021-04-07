@@ -12,3 +12,8 @@ CREDITS = """
     sample text 
     more sample text
     """
+
+MAIN_MIN_WIDTH = 400
+MAIN_MIN_HEIGHT = 250
+MAIN_MAX_WIDTH = 2000
+MAIN_MAX_HEIGHT = 2000

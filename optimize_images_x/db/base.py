@@ -40,15 +40,23 @@ def query_one(db_path: str, sql: str) -> Any:
     return row
 
 
-def initialize(db_path: str) -> None:
+def initialize(db_path: str, current_platform: str) -> None:
     """ Create the database file, generate tables and populate default values.
 
     If the database file does not exist, it will be created. Then, each of the
     tables is created, and in case no record exists yet, default values are
     filled up.
 
+    @param current_platform: the current environment ('macOS', 'Windows',...)
     @param db_path: path to the database file
     """
+    if current_platform == 'Darwin':
+        default_app_style = 'aqua'
+    elif current_platform == 'Windows':
+        default_app_style = 'vista'
+    else:
+        default_app_style = 'clam'
+
     sql_script = """
         CREATE TABLE IF NOT EXISTS app_settings 
         (
@@ -57,18 +65,19 @@ def initialize(db_path: str) -> None:
             main_window_x      INTEGER   DEFAULT 0,
             main_window_y      INTEGER   DEFAULT 0,
             main_window_w      INTEGER   DEFAULT 700,
-            main_window_h      INTEGER   DEFAULT 600
+            main_window_h      INTEGER   DEFAULT 600,
+            app_style          TEXT
         );
 
         INSERT OR IGNORE INTO app_settings 
         (
              id, show_welcome_msg, main_window_x,
-             main_window_y, main_window_w,main_window_h
+             main_window_y, main_window_w,main_window_h, app_style
         )
         VALUES 
         (
             1, 
-            1, 0, 0, 700, 600
+            1, 0, 0, 700, 600, '{default_app_style}'
         );
 
             
@@ -162,7 +171,7 @@ def initialize(db_path: str) -> None:
             total_weight_processed   INTEGER  DEFAULT 0, -- in bytes
             total_weight_saved       INTEGER  DEFAULT 0, -- in bytes
             session_count            INTEGER  DEFAULT 0, -- all app sessions
-            sessions_with_processed  INTEGER  DEFAULT 0 -- sessions w/processed imgs
+            sessions_with_processed  INTEGER  DEFAULT 0 -- sessions width/processed imgs
             );
             
         INSERT OR IGNORE INTO app_stats
@@ -184,6 +193,7 @@ def initialize(db_path: str) -> None:
         );
         """
 
+    sql_script = sql_script.replace('{default_app_style}', default_app_style)
     execute(db_path, sql_script)
 
 
@@ -196,12 +206,12 @@ def reset_settings(db_path: str) -> None:
             INSERT OR REPLACE INTO app_settings 
             (
                  id, show_welcome_msg, main_window_x,
-                 main_window_y, main_window_w,main_window_h
+                 main_window_y, main_window_w,main_window_h, app_style
             )
             VALUES 
             (
                 1, 
-                1, 0, 0, 700, 600
+                1, 0, 0, 700, 600, '{default_app_style}'
             );
 
             INSERT OR REPLACE INTO task_settings 
@@ -263,7 +273,7 @@ def reset_settings(db_path: str) -> None:
 if __name__ == '__main__':
     from optimize_images_x.global_setup import DB_PATH
 
-    # initialize(DB_PATH)
+    # initialize(DB_PATH, 'macOS')
     # reset_settings(DB_PATH)
 
     print(query_one(DB_PATH, "SELECT * FROM app_settings;"))

@@ -9,9 +9,9 @@ class LabelEntry(ttk.Frame):
         self.calendar_open = False
 
         if style:
-            self.label = ttk.Label(self, text=label, style=style, anchor="w")
+            self.label = ttk.Label(self, text=label, style=style, anchor="width")
         else:
-            self.label = ttk.Label(self, text=label, anchor="w")
+            self.label = ttk.Label(self, text=label, anchor="width")
 
         self.entry = ttk.Entry(self, font=("Helvetica-Neue", 12), width=width)
         self.entry.insert(0, default_text)

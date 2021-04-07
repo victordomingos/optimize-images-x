@@ -42,7 +42,7 @@ class ThanksWindow:
         self.close_button.pack()
         self.thanksframe.pack(side=tk.TOP)
         self.thanksframe_bottom.pack(side=tk.BOTTOM)
-        self.thanksRoot.bind("<Command-w>", self.close_window)
+        self.thanksRoot.bind("<Command-width>", self.close_window)
 
     @staticmethod
     def close_window(event):
@@ -120,7 +120,7 @@ class AboutWindow:
         self.pframe_fundo.pack(side=tk.TOP)
 
         self.pframe_topo.focus()
-        self.popupRoot.bind("<Command-w>", self.close_window)
+        self.popupRoot.bind("<Command-width>", self.close_window)
 
     @staticmethod
     def close_window(event):

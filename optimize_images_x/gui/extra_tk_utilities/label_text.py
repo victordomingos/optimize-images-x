@@ -11,9 +11,9 @@ class LabelText(ttk.Frame):
     def __init__(self, parent, label, style=None, width=0, height=0):
         ttk.Frame.__init__(self, parent)
         if style:
-            self.label = ttk.Label(self, text=label, style=style, anchor="w")
+            self.label = ttk.Label(self, text=label, style=style, anchor="width")
         else:
-            self.label = ttk.Label(self, text=label, anchor="w")
+            self.label = ttk.Label(self, text=label, anchor="width")
 
         self.scrolledtext = tk.Text(self, font=("Helvetica-Neue", 12),
                                     highlightcolor="LightSteelBlue2",

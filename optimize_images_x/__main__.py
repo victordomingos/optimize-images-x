@@ -10,8 +10,8 @@ import platform
 import tkinter as tk
 from tkinter import ttk
 
-from gui.app_status import AppStatus
-from gui.main_window import App
+from optimize_images_x.gui.app_status import AppStatus
+from optimize_images_x.gui.main_window import App
 from optimize_images_x.db.app_settings import AppSettings
 from optimize_images_x.db.base import initialize
 from optimize_images_x.db.task_settings import TaskSettings

@@ -13,6 +13,7 @@ class AppSettings:
         self.main_window_w = 700
         self.main_window_h = 600
         self.app_style = 'clam'
+        self.last_opened_dir = ''
         self.load()
 
     def load(self):
@@ -24,6 +25,7 @@ class AppSettings:
         self.main_window_w = settings['main_window_w']
         self.main_window_h = settings['main_window_h']
         self.app_style = settings['app_style']
+        self.last_opened_dir = settings['last_opened_dir']
 
     def save(self):
         sql = """
@@ -33,7 +35,8 @@ class AppSettings:
                 main_window_y=?,
                 main_window_w=?,
                 main_window_h=?
-                app_style=?
+                app_style=?,
+                last_opened_dir=?
             WHERE id=1
             """
 
@@ -42,7 +45,8 @@ class AppSettings:
                   self.main_window_y,
                   self.main_window_w,
                   self.main_window_h,
-                  self.app_style)
+                  self.app_style,
+                  self.last_opened_dir)
 
         execute_with_params(self.db_path, sql, values)
 

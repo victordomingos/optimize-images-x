@@ -14,6 +14,7 @@ from gui.app_status import AppStatus
 from gui.main_window import App
 from optimize_images_x.db.app_settings import AppSettings
 from optimize_images_x.db.base import initialize
+from optimize_images_x.db.task_settings import TaskSettings
 from optimize_images_x.global_setup import APP_NAME, DB_PATH
 
 if __name__ == "__main__":
@@ -21,9 +22,10 @@ if __name__ == "__main__":
 
     app_status = AppStatus()
     app_settings = AppSettings(DB_PATH)
+    task_settings = TaskSettings(DB_PATH)
 
     root = tk.Tk()
-    app_status.main_window = App(root, app_status, app_settings)
+    app_status.main_window = App(root, app_status, app_settings, task_settings)
 
     estilo_global = ttk.Style(root)
     estilo_global.theme_use(app_settings.app_style)

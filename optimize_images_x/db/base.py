@@ -66,18 +66,19 @@ def initialize(db_path: str, current_platform: str) -> None:
             main_window_y      INTEGER   DEFAULT 0,
             main_window_w      INTEGER   DEFAULT 700,
             main_window_h      INTEGER   DEFAULT 600,
-            app_style          TEXT
+            app_style          TEXT,
+            last_opened_dir    TEXT
         );
 
         INSERT OR IGNORE INTO app_settings 
         (
-             id, show_welcome_msg, main_window_x,
-             main_window_y, main_window_w,main_window_h, app_style
+             id, show_welcome_msg, main_window_x, main_window_y, 
+             main_window_w, main_window_h, app_style, last_opened_dir
         )
         VALUES 
         (
             1, 
-            1, 0, 0, 700, 600, '{default_app_style}'
+            1, 0, 0, 700, 600, '{default_app_style}', ''
         );
 
             

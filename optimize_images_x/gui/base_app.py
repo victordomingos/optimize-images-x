@@ -1,5 +1,6 @@
 import tkinter as tk
 import tkinter.font
+from functools import lru_cache
 from tkinter import ttk
 
 from optimize_images_x.gui.extra_tk_utilities.auto_scrollbar import AutoScrollbar
@@ -7,6 +8,30 @@ from optimize_images_x.gui.extra_tk_utilities.status_bar import StatusBar
 
 
 # import Pmw
+
+@lru_cache(maxsize=10)
+def is_numeric(string: str) -> bool:
+    """
+    test if a string s is numeric
+    """
+    for c in string:
+        if c not in "1234567890.":
+            return False
+
+    return True
+
+
+def change_numeric(data):
+    """
+    if the data to be sorted is numeric change to float
+    """
+    if not data:
+        return []
+
+    if is_numeric(data[0][0]):
+        return [(float(child), col) for child, col in data]
+    else:
+        return data
 
 
 class BaseApp(ttk.Frame):
@@ -24,7 +49,7 @@ class BaseApp(ttk.Frame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
         self.master = master
-        self.estilo = ttk.Style()
+        self.style = ttk.Style()
 
         # self.dicas = Pmw.Balloon(self.master, label_background='#f6f6f6',
         #                          hull_highlightbackground='#b3b3b3',
@@ -51,24 +76,28 @@ class BaseApp(ttk.Frame):
         self.btnTxtColor = "grey22"
         self.btnTxtColor_active = "white"
 
-        self.tree = ttk.Treeview(
-            self.leftframe, height=60, selectmode='browse')
+        self.tree = ttk.Treeview(self.leftframe, height=60, selectmode='browse')
 
         # get status bar
         self.my_statusbar = StatusBar(self.mainframe)
 
-        self.estilo.configure('Treeview', font=(
-            "Lucida Grande", 11), foreground="grey22", rowheight=20)
-        self.estilo.configure('Treeview.Heading', font=(
-            "Lucida Grande", 11), foreground="grey22")
-        self.estilo.configure('Treeview', relief='flat', borderwidth=0)
+        self.style.configure('Treeview',
+                             font=("Lucida Grande", 11),
+                             foreground="grey22",
+                             rowheight=20)
+
+        self.style.configure('Treeview.Heading',
+                             font=("Lucida Grande", 11),
+                             foreground="grey22")
+
+        self.style.configure('Treeview', relief='flat', borderwidth=0)
 
         self.compose_frames()
 
         self.vsb = AutoScrollbar(self.leftframe,
                                  orient="vertical",
                                  command=self.tree.yview)
-        self.configurar_tree()
+        self.configure_tree()
 
     @property
     def screen_size(self):
@@ -82,33 +111,7 @@ class BaseApp(ttk.Frame):
         self.bottomframe.pack(side='bottom', fill='x')
         self.mainframe.pack(side='top', expand=True, fill='both')
 
-        self.estilo.configure("secondary.TButton", font=("Lucida Grande", 11))
-
-    # ------ Permitir que a tabela possa ser ordenada clicando no cabeçalho --
-    @staticmethod
-    def is_numeric(s):
-        """
-        test if a string s is numeric
-        """
-        numeric: bool = False
-        for c in s:
-            if c in "1234567890.":
-                numeric = True
-            else:
-                return False
-        return numeric
-
-    def change_numeric(self, data):
-        """
-        if the data to be sorted is numeric change to float
-        """
-        new_data = []
-        if self.is_numeric(data[0][0]):
-            # change child to a float
-            for child, col in data:
-                new_data.append((float(child), col))
-            return new_data
-        return data
+        self.style.configure("secondary.TButton", font=("Lucida Grande", 11))
 
     def sort_by(self, tree, col, descending):
         """
@@ -117,19 +120,17 @@ class BaseApp(ttk.Frame):
         data = [(tree.set(child, col), child)
                 for child in tree.get_children('')]
 
-        data = self.change_numeric(data)
+        data = change_numeric(data)
         data.sort(reverse=descending)
 
         for ix, item in enumerate(data):
             tree.move(item[1], '', ix)
 
         tree.heading(col, command=lambda col=col: self.sort_by(tree, col, int(not descending)))
-
         self.alternar_cores(tree)
 
-    # ------ Fim das funções relacionadas c/ o ordenamento da tabela ---------
-
     def alternar_cores(self, tree, inverso=False, fundo1='grey98', fundo2='white'):
+        print('asasassaasas')
         if inverso:
             impar = False
         else:
@@ -147,7 +148,7 @@ class BaseApp(ttk.Frame):
         tree.tag_configure('impar', background=fundo2)
         self.update_idletasks()
 
-    def configurar_tree(self):
+    def configure_tree(self):
         # Ordenar por coluna ao clicar no respetivo cabeçalho
         for col in self.tree['columns']:
             self.tree.heading(col, text=col.title(),

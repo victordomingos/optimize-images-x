@@ -1,12 +1,9 @@
-import os
 import tkinter as tk
 import webbrowser
-from collections import Iterable
 from tkinter import ttk
 from tkinter.filedialog import askopenfilenames, askdirectory
 
-from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT, APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES, \
-    SUPPORTED_FORMATS
+from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT, APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES
 from optimize_images_x.global_setup import MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT
 from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
 from optimize_images_x.gui.base_app import BaseApp
@@ -50,20 +47,20 @@ class App(BaseApp):
         self.my_statusbar.set(f"{filepath}")
 
     def montar_tabela(self):
-        self.tree['columns'] = ('', 'File', 'Converted', 'Size', '% Saved', 'Path')
+        self.tree['columns'] = ('', 'File', 'Details', 'Size (kB)', '% Saved', 'Path')
         # self.tree.pack(side='top', expand=True, fill='both')
         self.tree.column('#0', anchor='w', minwidth=0, stretch=0, width=0)
 
-        self.tree.column('', anchor='e', minwidth=46, stretch=0, width=46)
-        self.tree.column('File', minwidth=40, stretch=1, width=120)
-        self.tree.column('Converted', minwidth=40, stretch=1, width=160)
-        self.tree.column('Size', minwidth=40, stretch=1, width=195)
-        self.tree.column('% Saved', minwidth=40, stretch=1, width=150)
+        self.tree.column('', anchor='e', minwidth=30, stretch=0, width=30)
+        self.tree.column('File', minwidth=200, stretch=1, width=310)
+        self.tree.column('Details', minwidth=160, stretch=1, width=180)
+        self.tree.column('Size (kB)', anchor='w', minwidth=70, stretch=1, width=100)
+        self.tree.column('% Saved', anchor='w', minwidth=60, stretch=1, width=80)
         # self.tree.column('Path', minwidth=0, stretch=0, width=0)
 
-        self.tree["displaycolumns"] = ('', 'File', 'Converted', 'Size', '% Saved')
+        self.tree["displaycolumns"] = ('', 'File', 'Details', 'Size (kB)', '% Saved')
 
-        self.configurar_tree()
+        self.configure_tree()
         self.leftframe.grid_columnconfigure(0, weight=1)
         self.leftframe.grid_columnconfigure(1, weight=0)
         self.leftframe.grid_rowconfigure(0, weight=1)
@@ -71,17 +68,25 @@ class App(BaseApp):
         self.bind_tree()
 
     def montar_barra_de_ferramentas(self):
-        self.btn_add = ttk.Button(self.topframe, text="➕", width=6,
-                                  command=self.select_files)
-        self.btn_add.grid(column=0, row=0)
-        # self.dicas.bind(self.btn_add, 'Criar novo processo de reparação. (⌘N)')
-        self.label_add = ttk.Label(
-            self.topframe, font=self.btnFont, foreground=self.btnTxtColor, text="Nova reparação")
-        self.label_add.grid(column=0, row=1)
+        self.btn_add_files = ttk.Button(self.topframe, text="➕", width=6,
+                                        command=self.select_files)
+        self.btn_add_files.grid(column=0, row=0)
+        # self.dicas.bind(self.btn_add_files, 'Criar novo processo de reparação. (⌘N)')
+        self.label_add_files = ttk.Label(self.topframe, font=self.btnFont,
+                                         foreground=self.btnTxtColor,
+                                         text="Add files…")
+        self.label_add_files.grid(column=0, row=1)
 
-        self.btn_detalhes = ttk.Button(self.topframe, text=" ℹ️️", width=3,
-                                       command=lambda: self.create_window_detalhe_rep(
-                                           num_reparacao=self.reparacao_selecionada))
+        self.btn_add_folder = ttk.Button(self.topframe, text="folder", width=6,
+                                         command=self.select_folder)
+        self.btn_add_folder.grid(column=1, row=0)
+        # self.dicas.bind(self.btn_add_files, 'Criar novo processo de reparação. (⌘N)')
+        self.label_add_folder = ttk.Label(self.topframe, font=self.btnFont,
+                                          foreground=self.btnTxtColor,
+                                          text="Add folder…")
+        self.label_add_folder.grid(column=1, row=1)
+
+        self.btn_detalhes = ttk.Button(self.topframe, text=" ℹ️️", width=3, command=None)
         self.btn_detalhes.grid(column=6, row=0)
         ttk.Label(self.topframe, font=self.btnFont,
                   foreground=self.btnTxtColor, text="Detalhes").grid(column=6, row=1)
@@ -173,6 +178,7 @@ class App(BaseApp):
         self.alternar_cores(self.tree)
         self.my_statusbar.show_progress(self.app_status.tasks_count,
                                         self.app_status.processed_tasks_count)
+        self.my_statusbar.set(f'{self.app_status.tasks_count} files')
 
     def select_files(self):
         if not (folder := self.app_settings.last_opened_dir):
@@ -198,34 +204,5 @@ class App(BaseApp):
                             initialdir=folder,
                             mustexist=True)
 
-        self.add_folder(path, self.task_settings.recurse_subfolders)
-        self.after_idle(self.atualizar_lista)
-
-    def add_folder(self, path, recursive: bool):
-        n = 0
-        for filepath in self.search_images(path, recursive):
-            self.app_status.add_task(filepath)
-            n += 1
-            if n % 50 == 0:
-                self.after_idle(lambda: self.atualizar_lista())
-
+        self.app_status.add_folder(path, self.task_settings.recurse_subfolders)
         self.after_idle(lambda: self.atualizar_lista())
-
-    @staticmethod
-    def search_images(dirpath: str, recursive: bool) -> Iterable[str]:
-        if recursive:
-            for root, _, files in os.walk(dirpath):
-                for filename in files:
-                    if not os.path.isfile(os.path.join(root, filename)):
-                        continue
-                    extension = os.path.splitext(filename)[1][1:]
-                    if extension.lower() in SUPPORTED_FORMATS:
-                        yield os.path.join(root, filename)
-        else:
-            with os.scandir(dirpath) as directory:
-                for dir_entry in directory:
-                    if not os.path.isfile(os.path.normpath(dir_entry)):
-                        continue
-                    extension = os.path.splitext(dir_entry)[1][1:]
-                    if extension.lower() in SUPPORTED_FORMATS:
-                        yield os.path.normpath(dir_entry)

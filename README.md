@@ -15,7 +15,7 @@ Please refer to the above links if you want to know about all the options availa
 ## Installation and dependencies:
 
 To install and run this application, you need to have a working
-Python 3.7+ installation. We try to keep the external dependencies at a minimum, in order to keep compatibility with different  environments. At this moment, we require:
+Python 3.9+ installation. We try to keep the external dependencies at a minimum, in order to keep compatibility with different  environments. At this moment, we require:
 
   - optimize-images>=1.4.0
   - Pillow>=8.0.1

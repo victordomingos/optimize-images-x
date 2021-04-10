@@ -26,6 +26,7 @@ def main():
     root = tk.Tk()
     app_status.main_window = App(root, app_status, app_settings, task_settings)
     estilo_global = ttk.Style(root)
+    #estilo_global.theme_use('classic')
     estilo_global.theme_use(app_settings.app_style)
     root.configure(background='grey95')
     root.title(APP_NAME)

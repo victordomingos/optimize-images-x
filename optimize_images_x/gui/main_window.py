@@ -3,6 +3,7 @@ import webbrowser
 from tkinter import ttk
 from tkinter.filedialog import askopenfilenames, askdirectory
 
+from optimize_images_x.file_utils import human
 from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT, APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES
 from optimize_images_x.global_setup import MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT
 from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
@@ -45,17 +46,18 @@ class App(BaseApp):
         tree_row = self.tree.item(current_item)
         filepath = tree_row["values"][5]
         self.my_statusbar.set(f"{filepath}")
+        self.after(4000, self.update_count)
 
     def montar_tabela(self):
         self.tree['columns'] = ('', 'File', 'Details', 'Size (kB)', '% Saved', 'Path')
         # self.tree.pack(side='top', expand=True, fill='both')
         self.tree.column('#0', anchor='w', minwidth=0, stretch=0, width=0)
 
-        self.tree.column('', anchor='e', minwidth=30, stretch=0, width=30)
-        self.tree.column('File', minwidth=200, stretch=1, width=310)
+        self.tree.column('', anchor='w', minwidth=30, stretch=0, width=30)
+        self.tree.column('File', minwidth=200, stretch=1, width=330)
         self.tree.column('Details', minwidth=160, stretch=1, width=180)
-        self.tree.column('Size (kB)', anchor='w', minwidth=70, stretch=1, width=100)
-        self.tree.column('% Saved', anchor='w', minwidth=60, stretch=1, width=80)
+        self.tree.column('Size (kB)', anchor='e', minwidth=70, stretch=0, width=90)
+        self.tree.column('% Saved', anchor='e', minwidth=60, stretch=0, width=70)
         # self.tree.column('Path', minwidth=0, stretch=0, width=0)
 
         self.tree["displaycolumns"] = ('', 'File', 'Details', 'Size (kB)', '% Saved')
@@ -68,17 +70,19 @@ class App(BaseApp):
         self.bind_tree()
 
     def montar_barra_de_ferramentas(self):
-        self.btn_add_files = ttk.Button(self.topframe, text="➕", width=6,
+        self.btn_add_files = ttk.Button(self.topframe, text=" 📄", width=3,
                                         command=self.select_files)
         self.btn_add_files.grid(column=0, row=0)
         # self.dicas.bind(self.btn_add_files, 'Criar novo processo de reparação. (⌘N)')
         self.label_add_files = ttk.Label(self.topframe, font=self.btnFont,
                                          foreground=self.btnTxtColor,
                                          text="Add files…")
+
         self.label_add_files.grid(column=0, row=1)
 
-        self.btn_add_folder = ttk.Button(self.topframe, text="folder", width=6,
+        self.btn_add_folder = ttk.Button(self.topframe, text=" 📁", width=3,
                                          command=self.select_folder)
+
         self.btn_add_folder.grid(column=1, row=0)
         # self.dicas.bind(self.btn_add_files, 'Criar novo processo de reparação. (⌘N)')
         self.label_add_folder = ttk.Label(self.topframe, font=self.btnFont,
@@ -86,38 +90,45 @@ class App(BaseApp):
                                           text="Add folder…")
         self.label_add_folder.grid(column=1, row=1)
 
-        self.btn_detalhes = ttk.Button(self.topframe, text=" ℹ️️", width=3, command=None)
-        self.btn_detalhes.grid(column=6, row=0)
-        ttk.Label(self.topframe, font=self.btnFont,
-                  foreground=self.btnTxtColor, text="Detalhes").grid(column=6, row=1)
-        # self.dicas.bind(
-        #     self.btn_detalhes, 'Apresentar detalhes do processo\nde reparação selecionado. (⌘I)')
+        self.btn_clear_queue = ttk.Button(self.topframe, text=" 🧹", width=3,
+                                          command=self.clear_list)
 
-        self.btn_remessas = ttk.Button(
-            self.topframe, text=" ⬆️️", width=3, command=self.create_window_settings)
-        self.label_remessas = ttk.Label(
-            self.topframe, font=self.btnFont, foreground=self.btnTxtColor, text="Remessas")
-        self.btn_remessas.grid(row=0, column=15)
-        self.label_remessas.grid(column=15, row=1)
-        # self.dicas.bind(self.btn_remessas,
+        self.btn_clear_queue.grid(column=2, row=0)
+
+        self.label_clear_queue = ttk.Label(self.topframe, font=self.btnFont,
+                                           foreground=self.btnTxtColor,
+                                           text="Remove all")
+
+        self.label_clear_queue.grid(column=2, row=1)
+
+        self.btn_settings = ttk.Button(self.topframe, text=" ⚙️️️", width=3,
+                                       command=self.create_window_settings)
+
+        self.label_settings = ttk.Label(self.topframe, font=self.btnFont,
+                                        foreground=self.btnTxtColor,
+                                        text="Settings")
+
+        self.btn_settings.grid(row=0, column=15)
+        self.label_settings.grid(column=15, row=1)
+        # self.dicas.bind(self.btn_settings,
         #                'Mostrar/ocultar a janela de remessas. (⌘3)')
 
         for col in range(1, 16):
             self.topframe.columnconfigure(col, weight=0)
+
         # self.topframe.columnconfigure(3, weight=1)
         self.topframe.columnconfigure(5, weight=1)
         self.topframe.columnconfigure(11, weight=1)
 
     def create_window_settings(self, *event, criar_nova_remessa=None):
         if self.app_status.is_settings_window_open:
-            # bring to front/focus
-            pass
+            self.app_status.settings_window.lift()
         else:
             self.app_status.settings_window = tk.Toplevel(self.master)
             self.settings_window = SettingsWindow(
                 self.app_status.settings_window, self.app_status)
             self.app_status.is_settings_window_open = True
-            self.app_status.janela_remessas.wm_protocol(
+            self.app_status.settings_window.wm_protocol(
                 "WM_DELETE_WINDOW", self.close_window_settings)
 
     def close_window_settings(self, *event):
@@ -162,7 +173,7 @@ class App(BaseApp):
         # self.master.bind('<<open-config-dialog>>', config_dialog)
         self.master.createcommand('tkAboutDialog', AboutWindow)
 
-    def atualizar_lista(self):
+    def update_img_list(self):
         """ Atualizar a lista de reparações na tabela principal.
         """
         for i in self.tree.get_children():  # Limpar tabela primeiro
@@ -175,10 +186,10 @@ class App(BaseApp):
                       '', task.filepath)
             self.tree.insert("", index="end", values=values)
 
-        self.alternar_cores(self.tree)
+        self.alternate_colors(self.tree)
         self.my_statusbar.show_progress(self.app_status.tasks_count,
                                         self.app_status.processed_tasks_count)
-        self.my_statusbar.set(f'{self.app_status.tasks_count} files')
+        self.after_idle(self.update_count)
 
     def select_files(self):
         if not (folder := self.app_settings.last_opened_dir):
@@ -193,7 +204,7 @@ class App(BaseApp):
         for filepath in filepaths:
             self.app_status.add_task(filepath)
 
-        self.after_idle(self.atualizar_lista)
+        self.after_idle(self.update_img_list)
 
     def select_folder(self):
         if not (folder := self.app_settings.last_opened_dir):
@@ -205,4 +216,18 @@ class App(BaseApp):
                             mustexist=True)
 
         self.app_status.add_folder(path, self.task_settings.recurse_subfolders)
-        self.after_idle(lambda: self.atualizar_lista())
+        self.after_idle(lambda: self.update_img_list())
+
+    def clear_list(self):
+        self.app_status.clear_list()
+        self.update_img_list()
+
+    def update_count(self):
+        n_files = self.app_status.tasks_count
+        total_weight = human(self.app_status.tasks_total_filesize)
+        saved = ''
+        if self.app_status.tasks_total_bytes_saved != 0:
+            h_bytes = human(self.app_status.tasks_total_bytes_saved)
+            percent = self.app_status.tasks_total_percent_saved
+            saved = f' Saved {h_bytes} ({percent} %))'
+        self.my_statusbar.set(f'{n_files} files, {total_weight} total{saved}')

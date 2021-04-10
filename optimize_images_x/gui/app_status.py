@@ -26,6 +26,18 @@ class AppStatus:
     def tasks_count(self):
         return len(self.tasks)
 
+    @property
+    def tasks_total_filesize(self):
+        return sum(t.original_filesize for t in self.tasks)
+
+    @property
+    def tasks_total_bytes_saved(self):
+        return sum(t.bytes_saved for t in self.tasks)
+
+    @property
+    def tasks_total_percent_saved(self):
+        return self.tasks_total_bytes_saved / self.tasks_total_filesize * 100
+
     def add_task(self, filepath):
         self._add_if_new(filepath, self.filepaths)
 
@@ -35,6 +47,11 @@ class AppStatus:
 
     def _add_if_new(self, filepath, filepaths):
         if filepath not in filepaths:
-            new_task = Task(filepath, 'Pending…', os.path.getsize(filepath), 0)
+            size = os.path.getsize(filepath)
+            new_task = Task(filepath, 'Pending…', size, size)
             self.tasks.append(new_task)
             self.filepaths.add(filepath)
+
+    def clear_list(self):
+        self.tasks = []
+        self.filepaths = set()

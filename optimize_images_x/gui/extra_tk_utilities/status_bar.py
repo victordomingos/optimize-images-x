@@ -22,7 +22,7 @@ class StatusBar(ttk.Frame):
                                             length=125,
                                             mode='indeterminate')
 
-        self.label.pack()
+        self.label.pack(padx=4, pady=4)
         self.right_frame.place(in_=self, relx=1, rely=1, y=-10, anchor='e')
         self.pack(side=tk.BOTTOM, fill=tk.X)
 

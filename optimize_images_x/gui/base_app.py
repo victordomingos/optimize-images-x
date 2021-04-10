@@ -127,36 +127,37 @@ class BaseApp(ttk.Frame):
             tree.move(item[1], '', ix)
 
         tree.heading(col, command=lambda col=col: self.sort_by(tree, col, int(not descending)))
-        self.alternar_cores(tree)
+        self.alternate_colors(tree)
 
-    def alternar_cores(self, tree, inverso=False, fundo1='grey98', fundo2='white'):
-        print('asasassaasas')
-        if inverso:
-            impar = False
+    def alternate_colors(self, tree, reverse=False, fundo1='grey98', fundo2='white'):
+        if reverse:
+            odd = False
         else:
-            impar = True
+            odd = True
 
         for i in tree.get_children():
-            if impar:
-                tree.item(i, tags=("par",))
-                impar = False
+            if odd:
+                tree.item(i, tags=("even",))
+                odd = False
             else:
-                tree.item(i, tags=("impar",))
-                impar = True
+                tree.item(i, tags=("odd",))
+                odd = True
 
-        tree.tag_configure('par', background=fundo1)
-        tree.tag_configure('impar', background=fundo2)
+        tree.tag_configure('even', background=fundo1)
+        tree.tag_configure('odd', background=fundo2)
         self.update_idletasks()
 
     def configure_tree(self):
-        # Ordenar por coluna ao clicar no respetivo cabeçalho
+        # Sort by column by clicking on header
         for col in self.tree['columns']:
             self.tree.heading(col, text=col.title(),
                               command=lambda c=col: self.sort_by(self.tree, c, 0))
+        self.style.configure("Treeview.Heading",
+                             font=('Helvetica', 12),
+                             )
 
-        # Barra de deslocação para a tabela
+        # scrollbar for treeview
         self.tree.grid(column=0, row=0, sticky="nsew", in_=self.leftframe)
-
         self.tree.configure(yscrollcommand=self.vsb.set)
         self.vsb.grid(column=1, row=0, sticky="ns", in_=self.leftframe)
 

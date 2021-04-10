@@ -7,12 +7,6 @@ from setuptools import setup, find_packages
 used = sys.version_info
 required = (3, 9)
 
-# if version of pip that doesn't understand the python_requires classifier,
-# must be pip >= 9.0.0
-# must be built using at least version 24.2.0 of setuptools
-# in order for the python_requires argument to be recognized and the appropriate
-# metadata generated
-# python -m pip install --upgrade pip setuptools
 if used[:2] < required:
     msg = f'Unsupported Python version: ' \
           f'{sys.version_info.major}.{sys.version_info.minor}. ' \

@@ -105,19 +105,20 @@ class SettingsWindow(ttk.Frame):
                                             text='Global options',
                                             style='Settings.TLabelframe')
 
-        self.chk_keep_original_size = ttk.Checkbutton(
-            self.general_left,
-            text="Keep original size",
-            variable=self.var_keep_original_size)
+        self.radio_keep_orig_size = ttk.Radiobutton(self.general_left,
+                                                    text="Keep original size",
+                                                    value=1,
+                                                    variable=self.var_keep_original_size)
+        self.radio_downsize_img = ttk.Radiobutton(self.general_left,
+                                                  text="Downsize image to fit:",
+                                                  value=0,
+                                                  variable=self.var_keep_original_size)
 
-        self.lbl_max_w = ttk.Label(self.general_left,
-                                   text="Max width:",
+        self.lbl_max_w = ttk.Label(self.general_left, text="Max width:",
                                    style="Panel_Body.TLabel")
 
         self.spin_max_w = ttk.Spinbox(self.general_left,
-                                      from_=0,
-                                      to=1000000,
-                                      increment=5,
+                                      from_=0, to=1000000, increment=5,
                                       textvariable=self.var_max_w)
 
         self.lbl_max_h = ttk.Label(self.general_left,
@@ -165,19 +166,21 @@ class SettingsWindow(ttk.Frame):
             variable=self.var_auto_jobs)
 
     def mount_tab_general(self):
-        self.chk_keep_original_size.grid(column=0, row=0, columnspan=2,
+        self.radio_keep_orig_size.grid(column=0, row=0, columnspan=2,
                                          sticky='we')
-        self.lbl_max_w.grid(column=0, row=1, sticky='we')
-        self.spin_max_w.grid(column=1, row=1, sticky='we')
-        self.lbl_max_h.grid(column=0, row=2, sticky='we')
-        self.spin_max_h.grid(column=1, row=2, sticky='we')
+        self.radio_downsize_img.grid(column=0, row=1, columnspan=2,
+                                       sticky='we')
+        self.lbl_max_w.grid(column=0, row=2, sticky='we')
+        self.spin_max_w.grid(column=1, row=2, sticky='we')
+        self.lbl_max_h.grid(column=0, row=3, sticky='we')
+        self.spin_max_h.grid(column=1, row=3, sticky='we')
 
         self.chk_recurse.grid(column=0, row=0, sticky='we')
         self.chk_fast_mode.grid(column=0, row=1, sticky='we')
         self.chk_convert_gray.grid(column=0, row=2, sticky='we')
         self.chk_no_comparison.grid(column=0, row=3, sticky='we')
 
-        self.lbl_jobs.grid(column=0, row=4, sticky='we')
+        self.lbl_jobs.grid(column=0, row=4, sticky='we', pady='12 0')
         self.spin_jobs.grid(column=0, row=5, sticky='we')
         self.chk_auto_jobs.grid(column=0, row=6, sticky='we')
 

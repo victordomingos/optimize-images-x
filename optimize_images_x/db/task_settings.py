@@ -106,7 +106,7 @@ class TaskSettings:
                   self.convert_grayscale,
                   self.no_comparison,
                   self.n_jobs,
-                  self.n_jobs,
+                  self.auto_jobs,
 
                   self.jpg_dynamic_quality,
                   self.jpg_quality,

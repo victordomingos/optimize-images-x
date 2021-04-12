@@ -100,7 +100,7 @@ class App(BaseApp):
         self.clear_icon = img_from_svg(icon_folder + "delete.svg")
         self.btn_clear_queue = ttk.Button(self.topframe,
                                           image=self.clear_icon,
-                                          text="Remove all",
+                                          text="Clear list",
                                           compound=tk.TOP,
                                           command=self.clear_list)
 

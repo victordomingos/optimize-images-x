@@ -32,6 +32,7 @@ class App(BaseApp):
         self.mount_table()
         self.compose_frames()
         self.after_idle(self.show_message)
+        self.clear_list()
 
     def update_window_status(self, event):
         self.app_settings.main_window_x = self.master.winfo_x()
@@ -224,12 +225,19 @@ class App(BaseApp):
                             initialdir=folder,
                             mustexist=True)
 
+        self.app_settings.last_opened_dir = path
+        self.app_settings.save()
+
         self.app_status.add_folder(path, self.task_settings.recurse_subfolders)
         self.after_idle(lambda: self.update_img_list())
 
     def clear_list(self):
         self.app_status.clear_list()
         self.update_img_list()
+        self.my_statusbar.hide_progress()
+        msg = 'Add image files or folders to start optimizing. ' \
+              'Original files will be replaced (always work on copies).'
+        self.after_idle(lambda: self.my_statusbar.set(msg))
 
     def update_count(self):
         n_files = self.app_status.tasks_count
@@ -241,11 +249,26 @@ class App(BaseApp):
             saved = f' Saved {h_bytes} ({percent} %))'
         self.my_statusbar.set(f'{n_files} files, {total_weight} total{saved}')
 
+    def update_report(self):
+        if self.app_status.processed_tasks_count == 0:
+            return
+
+        processed = self.app_status.processed_tasks_count
+        n_tasks = self.app_status.tasks_count
+        saved = human(self.app_status.tasks_total_bytes_saved)
+        orig_size = human(self.app_status.tasks_total_filesize)
+        percent = self.app_status.tasks_total_percent_saved
+        avg = human(self.app_status.tasks_total_bytes_saved / processed)
+
+        msg = f'Optimized {processed}/{n_tasks} images. ' \
+              f'Saved: {saved} of {orig_size} ({percent}%), avg. {avg} per file.'
+        self.after_idle(lambda: self.my_statusbar.set(msg))
+
     def show_message(self):
         if self.app_settings.show_welcome_msg:
             msg = 'Please notice that all image optimizations are applied ' \
                   'destructivelly to the provided files. Always work on copies, ' \
-                  'not on original image files.\n' \
+                  'not on original image files.\n\n' \
                   'Do you want to receive this warning next time?'
 
             answer = messagebox.askyesno(title='Welcome to Optimize Images!',

@@ -13,7 +13,7 @@ class AppSettings:
         self.main_window_w = 700
         self.main_window_h = 600
         self.app_style = 'clam'
-        self.last_opened_dir = ''
+        self.last_opened_dir = '~/'
         self.load()
 
     def load(self):

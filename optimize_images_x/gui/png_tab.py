@@ -471,13 +471,13 @@ class ContactsWindow(baseApp):
         que o painel se feche inadvertidamente.
         """
         if self.is_entryform_visible:
-            self.estado_app.main_window.MenuFicheiro.entryconfigure("Novo contacto",
-                                                                    state="disabled")
+            self.estado_app.main_window.file_menu.entryconfigure("Novo contacto",
+                                                                 state="disabled")
             # TODO - corrigir bug: o atalho de teclado só fica realmente inativo depois de acedermos ao menu ficheiro. Porquê??
             self.estado_app.main_window.unbind_all("<Command-t>")
         else:
-            self.estado_app.main_window.MenuFicheiro.entryconfigure("Novo contacto",
-                                                                    state="active")
+            self.estado_app.main_window.file_menu.entryconfigure("Novo contacto",
+                                                                 state="active")
             self.estado_app.main_window.bind_all("<Command-t>", lambda
                 *x: self.estado_app.main_window.create_window_contacts(
                 criar_novo_contacto="Cliente"))

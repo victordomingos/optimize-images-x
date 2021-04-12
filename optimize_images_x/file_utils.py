@@ -1,6 +1,10 @@
 import os
 from functools import lru_cache
+from io import BytesIO
 from typing import Iterable
+
+import cairosvg
+from PIL import Image, ImageTk
 
 from optimize_images_x.global_setup import SUPPORTED_FORMATS
 
@@ -21,6 +25,12 @@ def human(number: int, suffix='B') -> str:
             return f"{number:3.1f} {unit}{suffix}"
         number = number / 1024.0
     return f"{number:.1f}{'Yi'}{suffix}"
+
+
+def img_from_svg(add_files_icon):
+    image_data = cairosvg.svg2png(url=add_files_icon)
+    image = Image.open(BytesIO(image_data))
+    return ImageTk.PhotoImage(image)
 
 
 def search_images(dirpath: str, recursive: bool) -> Iterable[str]:

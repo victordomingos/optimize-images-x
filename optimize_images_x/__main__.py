@@ -10,12 +10,12 @@ import platform
 import tkinter as tk
 from tkinter import ttk
 
-from optimize_images_x.gui.app_status import AppStatus
-from optimize_images_x.gui.main_window import App
 from optimize_images_x.db.app_settings import AppSettings
 from optimize_images_x.db.base import initialize
 from optimize_images_x.db.task_settings import TaskSettings
 from optimize_images_x.global_setup import APP_NAME, DB_PATH
+from optimize_images_x.gui.app_status import AppStatus
+from optimize_images_x.gui.main_window import App
 
 
 def main():
@@ -25,9 +25,10 @@ def main():
     task_settings = TaskSettings(DB_PATH)
     root = tk.Tk()
     app_status.main_window = App(root, app_status, app_settings, task_settings)
-    estilo_global = ttk.Style(root)
-    #estilo_global.theme_use('classic')
-    estilo_global.theme_use(app_settings.app_style)
+    global_style = ttk.Style(root)
+    #global_style.theme_use('clam')
+    #global_style.theme_use('classic')
+    global_style.theme_use(app_settings.app_style)
     root.configure(background='grey95')
     root.title(APP_NAME)
     x = app_settings.main_window_x
@@ -36,6 +37,7 @@ def main():
     height = app_settings.main_window_h
     root.geometry(f"{width}x{height}+{x}+{y}")
     root.bind_all("<Mod2-q>", root.quit)
+    root.bind("<Configure>", app_status.main_window.update_window_status)
     root.mainloop()
 
 

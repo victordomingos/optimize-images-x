@@ -1,6 +1,7 @@
 # encoding: utf-8
 import sqlite3
 from contextlib import closing
+from os import cpu_count
 from typing import Any
 
 
@@ -60,15 +61,17 @@ def initialize(db_path: str, current_platform: str) -> None:
     else:
         default_app_style = 'clam'
 
-    sql_script = """
+    n_jobs = cpu_count() + 1
+
+    sql_script = f"""
         CREATE TABLE IF NOT EXISTS app_settings 
         (
             id                 INTEGER UNIQUE PRIMARY KEY   DEFAULT 1,
             show_welcome_msg   BOOLEAN   DEFAULT TRUE, 
             main_window_x      INTEGER   DEFAULT 0,
             main_window_y      INTEGER   DEFAULT 0,
-            main_window_w      INTEGER   DEFAULT 700,
-            main_window_h      INTEGER   DEFAULT 600,
+            main_window_w      INTEGER   DEFAULT 600,
+            main_window_h      INTEGER   DEFAULT 340,
             app_style          TEXT,
             last_opened_dir    TEXT
         );
@@ -81,7 +84,7 @@ def initialize(db_path: str, current_platform: str) -> None:
         VALUES 
         (
             1, 
-            1, 0, 0, 700, 600, '{default_app_style}', ''
+            1, 0, 0, 600, 340, '{default_app_style}', ''
         );
 
             
@@ -95,7 +98,8 @@ def initialize(db_path: str, current_platform: str) -> None:
             fast_mode            BOOLEAN   DEFAULT FALSE,
             convert_grayscale    BOOLEAN   DEFAULT FALSE,
             no_comparison        BOOLEAN   DEFAULT FALSE,
-            n_jobs               INTEGER   DEFAULT 0,      -- (=auto)
+            n_jobs               INTEGER   DEFAULT 0,    
+            auto_jobs            BOOLEAN   DEFAULT TRUE,    
             
             -- JPEG Settings
             jpg_dynamic_quality  BOOLEAN   DEFAULT TRUE,
@@ -111,7 +115,8 @@ def initialize(db_path: str, current_platform: str) -> None:
             remove_transparency  BOOLEAN   DEFAULT FALSE,
             bg_color_red         INTEGER   DEFAULT 255,
             bg_color_green       INTEGER   DEFAULT 255,
-            bg_color_blue        INTEGER   DEFAULT 255
+            bg_color_blue        INTEGER   DEFAULT 255,
+            bg_color_hex         TEXT      DEFAULT '#FFFFFF'
             );
             
         INSERT OR IGNORE INTO task_settings 
@@ -125,6 +130,7 @@ def initialize(db_path: str, current_platform: str) -> None:
             convert_grayscale,
             no_comparison,
             n_jobs,
+            auto_jobs,
             
             -- JPEG Settings
             jpg_dynamic_quality,
@@ -138,7 +144,8 @@ def initialize(db_path: str, current_platform: str) -> None:
             reduce_colors,
             max_colors,
             remove_transparency,
-            bg_color_red, bg_color_green, bg_color_blue
+            bg_color_red, bg_color_green, bg_color_blue,
+            bg_color_hex
         )
         VALUES (
             1,
@@ -149,7 +156,8 @@ def initialize(db_path: str, current_platform: str) -> None:
             0,
             0,
             0,
-            0,
+            {n_jobs},
+            1,
             
             -- JPEG Settings
             1,
@@ -163,7 +171,8 @@ def initialize(db_path: str, current_platform: str) -> None:
             0,
             255,
             0,
-            255, 255, 255
+            255, 255, 255,
+            '#FFFFFF'
         );
             
         CREATE TABLE IF NOT EXISTS app_stats (
@@ -197,7 +206,6 @@ def initialize(db_path: str, current_platform: str) -> None:
         );
         """
 
-    sql_script = sql_script.replace('{default_app_style}', default_app_style)
     execute(db_path, sql_script)
 
 

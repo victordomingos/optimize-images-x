@@ -60,7 +60,9 @@ class BaseApp(ttk.Frame):
         #                          initwait=1300)
 
         self.mainframe = ttk.Frame(master)
-        self.topframe = ttk.Frame(self.mainframe, padding="5 8 5 5")
+        # self.topframe = ttk.Frame(self.mainframe, padding="5 8 5 5")
+        self.topframe = ttk.Frame(self.mainframe, padding="0 0 0 2")
+
         self.centerframe = ttk.Frame(self.mainframe)
 
         self.leftframe = ttk.Frame(self.centerframe)
@@ -91,6 +93,10 @@ class BaseApp(ttk.Frame):
                              foreground="grey22")
 
         self.style.configure('Treeview', relief='flat', borderwidth=0)
+
+        self.style.configure('TButton',
+                             font=self.btnFont,
+                             foreground="grey22")
 
         self.compose_frames()
 
@@ -148,10 +154,15 @@ class BaseApp(ttk.Frame):
         self.update_idletasks()
 
     def configure_tree(self):
-        # Sort by column by clicking on header
         for col in self.tree['columns']:
-            self.tree.heading(col, text=col.title(),
-                              command=lambda c=col: self.sort_by(self.tree, c, 0))
+            self.tree.heading(
+                col, text=col.title(),
+                # Sort by column by clicking on header: not sorting here,
+                # because we need a sorting method that works with 'humanized'
+                # file sizes...
+                # command=lambda c=col: self.sort_by(self.tree, c, 0)
+            )
+
         self.style.configure("Treeview.Heading",
                              font=('Helvetica', 12),
                              )

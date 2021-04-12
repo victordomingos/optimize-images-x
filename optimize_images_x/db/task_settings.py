@@ -16,6 +16,7 @@ class TaskSettings:
         self.convert_grayscale = False
         self.no_comparison = False
         self.n_jobs = 0
+        self.auto_jobs = True
 
         # JPEG Settings
         self.jpg_dynamic_quality = True
@@ -32,6 +33,7 @@ class TaskSettings:
         self.bg_color_red = 255
         self.bg_color_green = 255
         self.bg_color_blue = 255
+        self.bg_color_hex = '#FFFFFF'
 
         self.load()
 
@@ -47,6 +49,7 @@ class TaskSettings:
         self.convert_grayscale = settings['convert_grayscale']
         self.no_comparison = settings['no_comparison']
         self.n_jobs = settings['n_jobs']
+        self.auto_jobs = settings['auto_jobs']
 
         # JPEG Settings
         self.jpg_dynamic_quality = settings['jpg_dynamic_quality']
@@ -63,6 +66,7 @@ class TaskSettings:
         self.bg_color_red = settings['bg_color_red']
         self.bg_color_green = settings['bg_color_green']
         self.bg_color_blue = settings['bg_color_blue']
+        self.bg_color_hex = settings['bg_color_hex']
 
     def save(self):
         sql = """
@@ -75,6 +79,7 @@ class TaskSettings:
                 convert_grayscale=?,
                 no_comparison=?,
                 n_jobs=?,
+                auto_jobs=?,
                 
                 jpg_dynamic_quality=?,
                 jpg_quality=?,
@@ -88,7 +93,8 @@ class TaskSettings:
                 remove_transparency=?,
                 bg_color_red=?,
                 bg_color_green=?,
-                bg_color_blue=?
+                bg_color_blue=?,
+                bg_color_hex=?
             WHERE id=1
             """
 
@@ -99,6 +105,7 @@ class TaskSettings:
                   self.fast_mode,
                   self.convert_grayscale,
                   self.no_comparison,
+                  self.n_jobs,
                   self.n_jobs,
 
                   self.jpg_dynamic_quality,
@@ -113,6 +120,8 @@ class TaskSettings:
                   self.remove_transparency,
                   self.bg_color_red,
                   self.bg_color_green,
-                  self.bg_color_blue)
+                  self.bg_color_blue,
+                  self.bg_color_hex,
+                  )
 
         execute_with_params(self.db_path, sql, values)

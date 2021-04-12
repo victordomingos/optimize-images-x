@@ -394,11 +394,11 @@ class RemessasWindow(baseApp):
         que o painel se feche inadvertidamente.
         """
         if self.is_entryform_visible:
-            self.estado_app.main_window.MenuFicheiro.entryconfigure("Nova remessa", state="disabled")
+            self.estado_app.main_window.file_menu.entryconfigure("Nova remessa", state="disabled")
             # TODO - corrigir bug: o atalho de teclado só fica realmente inativo depois de acedermos ao menu ficheiro. Porquê??
             self.estado_app.main_window.unbind_all("<Command-r>")
         else:
-            self.estado_app.main_window.MenuFicheiro.entryconfigure("Nova remessa", state="active")
+            self.estado_app.main_window.file_menu.entryconfigure("Nova remessa", state="active")
             self.estado_app.main_window.bind_all("<Command-r>", lambda
                 *x: self.estado_app.main_window.create_window_remessas(criar_nova_remessa=True))
 
@@ -424,10 +424,10 @@ class RemessasWindow(baseApp):
         que o painel se feche inadvertidamente.
         """
         if self.is_entryform_visible == True:
-            self.estado_app.main_window.MenuFicheiro.entryconfigure("Nova remessa", state="disabled")
+            self.estado_app.main_window.file_menu.entryconfigure("Nova remessa", state="disabled")
             self.estado_app.main_window.unbind_all("<Command-r>")
         else:
-            self.estado_app.main_window.MenuFicheiro.entryconfigure("Nova remessa", state="active")
+            self.estado_app.main_window.file_menu.entryconfigure("Nova remessa", state="active")
             self.estado_app.main_window.bind_all("<Command-r>")
 
     def clear_text(self):

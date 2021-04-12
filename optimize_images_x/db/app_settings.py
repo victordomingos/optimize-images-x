@@ -34,7 +34,7 @@ class AppSettings:
                 main_window_x=?,
                 main_window_y=?,
                 main_window_w=?,
-                main_window_h=?
+                main_window_h=?,
                 app_style=?,
                 last_opened_dir=?
             WHERE id=1

@@ -9,9 +9,9 @@ APP_NAME = 'Optimize Images X'
 APP_LICENSE = 'copyright text'
 
 CREDITS = """
-    credits text
-    sample text 
-    more sample text
+    
+    Icon theme from ttps://feathericons.com, 
+    copyrighted under the MIT licence.
     """
 
 SUPPORTED_TYPES = [
@@ -27,7 +27,7 @@ PENDING = 0
 IN_PROGRESS = 1
 COMPLETE = 2
 
-MAIN_MIN_WIDTH = 400
+MAIN_MIN_WIDTH = 500
 MAIN_MIN_HEIGHT = 250
 MAIN_MAX_WIDTH = 2000
-MAIN_MAX_HEIGHT = 2000
+MAIN_MAX_HEIGHT = 4000

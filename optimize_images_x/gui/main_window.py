@@ -1,15 +1,24 @@
+import concurrent.futures
 import os
 import tkinter as tk
 import webbrowser
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilenames, askdirectory
 
+from optimize_images.data_structures import Task as OITask, TaskResult
+from optimize_images.do_optimization import do_optimization
+
+from optimize_images_x.db.app_settings import AppSettings
+from optimize_images_x.db.task_settings import TaskSettings
 from optimize_images_x.file_utils import human, img_from_svg
-from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT, APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES
+from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES
+from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT
 from optimize_images_x.global_setup import MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT
 from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
+from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.base_app import BaseApp
 from optimize_images_x.gui.settings_window import SettingsWindow
+from optimize_images_x.task import Task
 
 
 class App(BaseApp):
@@ -20,9 +29,9 @@ class App(BaseApp):
         self.file_menu = tk.Menu(self.menu, postcommand=None)
 
         self.master = master
-        self.app_status = app_status
-        self.app_settings = app_settings
-        self.task_settings = task_settings
+        self.app_status: AppStatus = app_status
+        self.app_settings: AppSettings = app_settings
+        self.task_settings: TaskSettings = task_settings
 
         self.master.minsize(MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT)
         self.master.maxsize(MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT)
@@ -197,8 +206,6 @@ class App(BaseApp):
             self.tree.insert("", index="end", iid=task.filepath, values=values)
 
         self.alternate_colors(self.tree)
-        self.my_statusbar.show_progress(self.app_status.tasks_count,
-                                        self.app_status.processed_tasks_count)
         self.after_idle(self.update_count)
 
     def select_files(self):
@@ -215,6 +222,7 @@ class App(BaseApp):
             self.app_status.add_task(filepath)
 
         self.after_idle(self.update_img_list)
+        self.after_idle(self.optimize_images)
 
     def select_folder(self):
         if not (folder := self.app_settings.last_opened_dir):
@@ -230,6 +238,7 @@ class App(BaseApp):
 
         self.app_status.add_folder(path, self.task_settings.recurse_subfolders)
         self.after_idle(lambda: self.update_img_list())
+        self.after_idle(self.optimize_images)
 
     def clear_list(self):
         self.app_status.clear_list()
@@ -238,6 +247,75 @@ class App(BaseApp):
         msg = 'Add image files or folders to start optimizing. ' \
               'Original files will be replaced (always work on copies).'
         self.after_idle(lambda: self.my_statusbar.set(msg))
+
+    def optimize_images(self):
+        workers = self.task_settings.n_jobs
+        tasks = (self.convert_task(t, self.task_settings)
+                 for t in self.app_status.tasks)
+        n_tasks = self.app_status.tasks_count
+        n_files = 0
+        n_optimized_files = 0
+        total_src_size = 0
+        total_bytes_saved = 0
+        self.my_statusbar.show_progress(n_tasks, 0,
+                                        length=125,
+                                        mode='determinate')
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
+            current_img = ''
+            try:
+                result: TaskResult
+                for result in executor.map(do_optimization, tasks):
+                    current_img = result.img
+                    n_files += 1
+                    # total_src_size += result.orig_size
+                    # if result.was_optimized:
+                    #    n_optimized_files += 1
+                    #    total_bytes_saved += result.orig_size - result.final_size
+                    self.update_row(result)
+                    self.my_statusbar.progress_update(n_files)
+                    self.my_statusbar.set(f'{n_files}/{n_tasks} processed')
+                    self.update()
+            except concurrent.futures.process.BrokenProcessPool as bppex:
+                print(bppex, current_img)  # exception
+            except KeyboardInterrupt:
+                print("\b \n\n  == Operation was interrupted by the user. ==\n")
+
+        self.my_statusbar.hide_progress(last_update=n_tasks)
+
+    def update_row(self, result: TaskResult):
+        percent_saved = ((result.orig_size - result.final_size) / result.orig_size) * 100
+        percent_str = '--' if percent_saved == 0 else f'{percent_saved:.1f}'
+        icon = '✅' if result.was_optimized else '❌'
+
+        values = (icon,
+                  os.path.basename(result.img),
+                  '',
+                  human(result.orig_size),
+                  human(result.final_size),
+                  percent_str)
+
+        self.tree.item(result.img, values=values)
+
+    @staticmethod
+    def convert_task(task: Task, task_settings: TaskSettings) -> OITask:
+        return OITask(task.filepath,
+                      task_settings.jpg_quality,
+                      task_settings.remove_transparency,
+                      task_settings.reduce_colors,
+                      task_settings.max_colors,
+                      task_settings.max_width,
+                      task_settings.max_height,
+                      task_settings.keep_exif,
+                      task_settings.convert_all_to_jpg,
+                      task_settings.convert_big_to_jpg,
+                      task_settings.force_delete,
+                      (task_settings.bg_color_red,
+                       task_settings.bg_color_green,
+                       task_settings.bg_color_blue),
+                      task_settings.convert_grayscale,
+                      task_settings.no_comparison,
+                      task_settings.fast_mode)
 
     def update_count(self):
         n_files = self.app_status.tasks_count

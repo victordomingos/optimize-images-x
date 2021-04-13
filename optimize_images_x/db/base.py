@@ -61,7 +61,7 @@ def initialize(db_path: str, current_platform: str) -> None:
     else:
         default_app_style = 'clam'
 
-    n_jobs = cpu_count() + 1
+    n_jobs = cpu_count()
 
     sql_script = f"""
         CREATE TABLE IF NOT EXISTS app_settings 

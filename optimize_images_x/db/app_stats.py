@@ -10,7 +10,7 @@ class AppStats:
 
         self.images_loaded = 0
         self.images_processed = 0
-        self.processing_time = 0
+        self.processing_time: float = 0.0
         self.total_weight_loaded = 0
         self.total_weight_processed = 0
         self.total_weight_saved = 0
@@ -56,3 +56,18 @@ class AppStats:
                   self.sessions_with_processed)
 
         execute_with_params(self.db_path, sql, values)
+
+    def update_load_stats(self, images_loaded: int, total_weight_loaded: int):
+        self.images_loaded += images_loaded
+        self.total_weight_loaded += total_weight_loaded
+        self.save()
+
+    def update_process_stats(self, images_processed: int, processing_time: float,
+                             total_weight_processed: int, total_weight_saved: int):
+        self.images_processed += images_processed
+        self.processing_time += processing_time
+        self.total_weight_processed += total_weight_processed
+        self.total_weight_saved += total_weight_saved
+        if images_processed > 0:
+            self.sessions_with_processed += 1
+        self.save()

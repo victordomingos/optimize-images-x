@@ -2,6 +2,7 @@ import concurrent.futures
 import os
 import tkinter as tk
 import webbrowser
+from timeit import default_timer as timer
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilenames, askdirectory
 
@@ -9,6 +10,7 @@ from optimize_images.data_structures import Task as OITask, TaskResult
 from optimize_images.do_optimization import do_optimization
 
 from optimize_images_x.db.app_settings import AppSettings
+from optimize_images_x.db.app_stats import AppStats
 from optimize_images_x.db.task_settings import TaskSettings
 from optimize_images_x.file_utils import human, img_from_svg
 from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES
@@ -22,7 +24,8 @@ from optimize_images_x.task import Task
 
 
 class App(BaseApp):
-    def __init__(self, master, app_status, app_settings, task_settings, **kwargs):
+    def __init__(self, master, app_status, app_settings, task_settings,
+                 app_stats, **kwargs):
         super().__init__(master, **kwargs)
 
         self.menu = tk.Menu(self.master)
@@ -32,6 +35,7 @@ class App(BaseApp):
         self.app_status: AppStatus = app_status
         self.app_settings: AppSettings = app_settings
         self.task_settings: TaskSettings = task_settings
+        self.app_stats: AppStats = app_stats
 
         self.master.minsize(MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT)
         self.master.maxsize(MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT)
@@ -40,6 +44,8 @@ class App(BaseApp):
         self.generate_toolbar()
         self.mount_table()
         self.compose_frames()
+        self.master.deiconify()
+        self.master.update()
         self.after_idle(self.show_message)
         self.clear_list()
 
@@ -178,7 +184,7 @@ class App(BaseApp):
         self.menu.add_cascade(label="Help", menu=self.helpmenu)
         #       helpmenu.add_command(label="Preferências", command=About)
         self.helpmenu.add_command(
-            label="About " + APP_NAME, command=AboutWindow)
+            label="About " + APP_NAME, command=lambda: AboutWindow(self.app_stats))
         self.helpmenu.add_command(
             label="Credits & Thanks", command=ThanksWindow)
         self.helpmenu.add_separator()
@@ -188,7 +194,7 @@ class App(BaseApp):
         # self.master.createcommand('::tk::mac::ShowPreferences', prefs_function)
         # self.master.bind('<<about-idle>>', about_dialog)
         # self.master.bind('<<open-config-dialog>>', config_dialog)
-        self.master.createcommand('tkAboutDialog', AboutWindow)
+        self.master.createcommand('tkAboutDialog', lambda: AboutWindow(self.app_stats))
 
     def update_img_list(self):
         """ Update the image list. """
@@ -218,8 +224,12 @@ class App(BaseApp):
                                      multiple=True,
                                      filetypes=SUPPORTED_TYPES)
 
+        added_imgs: int = 0
+        added_bytes: int = 0
         for filepath in filepaths:
-            self.app_status.add_task(filepath)
+            added_imgs, added_bytes = self.app_status.add_task(filepath)
+
+        self.app_stats.update_load_stats(added_imgs, added_bytes)
 
         self.after_idle(self.update_img_list)
         self.after_idle(self.optimize_images)
@@ -236,7 +246,11 @@ class App(BaseApp):
         self.app_settings.last_opened_dir = path
         self.app_settings.save()
 
-        self.app_status.add_folder(path, self.task_settings.recurse_subfolders)
+        n_files, n_bytes = self.app_status.add_folder(
+            path, self.task_settings.recurse_subfolders)
+
+        self.app_stats.update_load_stats(n_files, n_bytes)
+
         self.after_idle(lambda: self.update_img_list())
         self.after_idle(self.optimize_images)
 
@@ -254,24 +268,28 @@ class App(BaseApp):
                  for t in self.app_status.tasks)
         n_tasks = self.app_status.tasks_count
         n_files = 0
-        n_optimized_files = 0
-        total_src_size = 0
-        total_bytes_saved = 0
+
         self.my_statusbar.show_progress(n_tasks, 0,
                                         length=125,
                                         mode='determinate')
 
         with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
             current_img = ''
+            n_optimized_files = 0
+            start_time = timer()
+            weights_processed = []
+            weights_saved = []
+            total_weight_saved = 0
+            result: TaskResult
+
             try:
-                result: TaskResult
                 for result in executor.map(do_optimization, tasks):
                     current_img = result.img
                     n_files += 1
-                    # total_src_size += result.orig_size
-                    # if result.was_optimized:
-                    #    n_optimized_files += 1
-                    #    total_bytes_saved += result.orig_size - result.final_size
+                    if result.was_optimized:
+                        n_optimized_files += 1
+                        weights_processed.append(result.orig_size)
+                        weights_saved.append(result.orig_size - result.final_size)
                     self.update_row(result)
                     self.my_statusbar.progress_update(n_files)
                     self.my_statusbar.set(f'{n_files}/{n_tasks} processed')
@@ -280,6 +298,13 @@ class App(BaseApp):
                 print(bppex, current_img)  # exception
             except KeyboardInterrupt:
                 print("\b \n\n  == Operation was interrupted by the user. ==\n")
+
+        processing_time = timer() - start_time
+
+        self.app_stats.update_process_stats(n_optimized_files,
+                                            processing_time,
+                                            sum(weights_processed),
+                                            sum(weights_saved))
 
         self.my_statusbar.hide_progress(last_update=n_tasks)
 

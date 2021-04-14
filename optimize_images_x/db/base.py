@@ -223,7 +223,7 @@ def reset_settings(db_path: str) -> None:
             VALUES 
             (
                 1, 
-                1, 0, 0, 700, 600, '{default_app_style}'
+                1, 1, 1, 700, 600, '{default_app_style}'
             );
 
             INSERT OR REPLACE INTO task_settings 

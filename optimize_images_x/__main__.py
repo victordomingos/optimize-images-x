@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import ttk
 
 from optimize_images_x.db.app_settings import AppSettings
+from optimize_images_x.db.app_stats import AppStats
 from optimize_images_x.db.base import initialize
 from optimize_images_x.db.task_settings import TaskSettings
 from optimize_images_x.global_setup import APP_NAME, DB_PATH
@@ -23,11 +24,18 @@ def main():
     app_status = AppStatus()
     app_settings = AppSettings(DB_PATH)
     task_settings = TaskSettings(DB_PATH)
+    app_stats = AppStats(DB_PATH)
+
+    app_stats.session_count += 1
+    app_stats.save()
+
     root = tk.Tk()
-    app_status.main_window = App(root, app_status, app_settings, task_settings)
+    app_status.main_window = App(root, app_status, app_settings,
+                                 task_settings, app_stats)
+
     global_style = ttk.Style(root)
-    #global_style.theme_use('clam')
-    #global_style.theme_use('classic')
+    # global_style.theme_use('clam')
+    # global_style.theme_use('classic')
     global_style.theme_use(app_settings.app_style)
     root.configure(background='grey95')
     root.title(APP_NAME)

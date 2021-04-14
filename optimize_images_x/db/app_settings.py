@@ -8,8 +8,8 @@ class AppSettings:
     def __init__(self, db_path: str):
         self.db_path = db_path
         self.show_welcome_msg = True
-        self.main_window_x = 0
-        self.main_window_y = 0
+        self.main_window_x = 1
+        self.main_window_y = 1
         self.main_window_w = 700
         self.main_window_h = 600
         self.app_style = 'clam'

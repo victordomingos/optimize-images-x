@@ -17,7 +17,6 @@ class Task:
 
     @property
     def orig_file_size_h(self) -> str:
-        #return to_kilobytes(self.original_filesize)
         return human(self.original_filesize)
 
     @property

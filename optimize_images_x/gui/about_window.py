@@ -3,7 +3,8 @@ import tkinter.font
 from tkinter import ttk
 
 from optimize_images_x import __version__
-from optimize_images_x.global_setup import APP_PATH, APP_NAME
+from optimize_images_x.file_utils import human
+from optimize_images_x.global_setup import APP_NAME
 from optimize_images_x.global_setup import CREDITS, APP_LICENSE
 
 
@@ -42,7 +43,7 @@ class ThanksWindow:
         self.close_button.pack()
         self.thanksframe.pack(side=tk.TOP)
         self.thanksframe_bottom.pack(side=tk.BOTTOM)
-        self.thanksRoot.bind("<Command-width>", self.close_window)
+        self.thanksRoot.bind("<Command-w>", self.close_window)
 
     @staticmethod
     def close_window(event):
@@ -52,7 +53,8 @@ class ThanksWindow:
 
 
 class AboutWindow:
-    def __init__(self, *event):
+    def __init__(self, app_stats, *event):
+        self.app_stats = app_stats
         self.about_w = 320
         self.about_h = 370
 
@@ -72,55 +74,94 @@ class AboutWindow:
         self.popupRoot.geometry(
             "{}x{}+{}+{}".format(self.about_w, self.about_h, x, y))
 
-        self.pframe_topo = ttk.Frame(self.popupRoot, padding="10 10 10 2")
-        self.pframe_meio = ttk.Frame(self.popupRoot, padding="10 2 2 10")
-        self.pframe_fundo = ttk.Frame(self.popupRoot, padding="10 2 10 10")
+        self.pframe_top = ttk.Frame(self.popupRoot, padding="10 10 10 2")
+        self.pframe_middle = ttk.Frame(self.popupRoot, padding="10 2 2 10")
+        self.pframe_bottom = ttk.Frame(self.popupRoot, padding="10 2 10 10")
 
-        #icon_path = APP_PATH + "/images/icon.gif"
-        #self.icon = tk.PhotoImage(file=icon_path)
-        #self.label = ttk.Label(self.pframe_topo, image=self.icon)
-        #self.label.pack(side='top')
-        #self.label.bind('<Button-1>', thanks)
+        # icon_path = APP_PATH + "/images/icon.gif"
+        # self.icon = tk.PhotoImage(file=icon_path)
+        # self.label = ttk.Label(self.pframe_top, image=self.icon)
+        # self.label.pack(side='top')
+        # self.label.bind('<Button-1>', thanks)
 
         self.appfont = tkinter.font.Font(size=15, weight='bold')
         self.copyfont = tkinter.font.Font(size=10)
 
         # ---------- TOPO -----------
         self.app_lbl = ttk.Label(
-            self.pframe_topo, font=self.appfont, text=APP_NAME)
+            self.pframe_top, font=self.appfont, text=APP_NAME)
 
         self.assin_lbl = ttk.Label(
-            self.pframe_topo,
-            text="\nSaving space and making websites faster since 2018.\n")
+            self.pframe_top,
+            text="\nSaving space"
+                 "\nand making websites faster "
+                 "\nsince 2018.\n")
 
-        self.version_lbl = ttk.Label(self.pframe_topo,
+        self.version_lbl = ttk.Label(self.pframe_top,
                                      font=self.copyfont,
                                      text=f"Version {__version__}\n\n\n")
 
-        # self.lbl_rep_count = ttk.Label(self.pframe_topo, font=self.copyfont,
-        #                                text=f"Processed images: {db.AppStats.processed_images}")
-
         # ---------- MEIO -----------
+
+        loaded_imgs = self.app_stats.images_loaded
+        loaded_weight = self.app_stats.total_weight_loaded
+        processed_imgs = self.app_stats.images_processed
+        weight_saved = self.app_stats.total_weight_saved
+        avg_weight_saved = 0
+        avg_process_rate = 0.0
+
+        if processed_imgs > 0:
+            avg_weight_saved = weight_saved / processed_imgs
+            avg_process_rate = processed_imgs / self.app_stats.processing_time
+
+        self.lbl_imgs_loaded = ttk.Label(self.pframe_middle,
+                                         text=f"Loaded images: {loaded_imgs}")
+
+        self.lbl_imgs_loaded = ttk.Label(
+            self.pframe_middle,
+            text=f"Total loaded weight: {human(loaded_weight)}")
+
+        self.lbl_processed_imgs = ttk.Label(
+            self.pframe_top,
+            text=f"Optimized images: {processed_imgs}")
+
+        self.lbl_weight_saved = ttk.Label(
+            self.pframe_middle,
+            text=f"Total saved space: {human(weight_saved)}")
+
+        self.lbl_avg_weight_saved = ttk.Label(
+            self.pframe_middle,
+            text=f"Avg. weight reduction: {human(avg_weight_saved)}")
+
+        self.lbl_avg_process_rate = ttk.Label(
+            self.pframe_middle,
+            text=f"Avg. processing rate: {avg_process_rate:.1f} f/s")
 
         # ---------- FUNDO -----------
         self.copyright_lbl = ttk.Label(
-            self.pframe_fundo, font=self.copyfont, text="\n\n© 2021 Victor Domingos")
+            self.pframe_bottom, font=self.copyfont, text="\n\n© 2021 Victor Domingos")
         self.license_lbl = ttk.Label(
-            self.pframe_fundo, font=self.copyfont, text=APP_LICENSE)
+            self.pframe_bottom, font=self.copyfont, text=APP_LICENSE)
 
         self.app_lbl.pack()
         self.assin_lbl.pack()
         self.version_lbl.pack()
-        # self.lbl_rep_count.pack()
+
+        self.lbl_imgs_loaded.pack()
+        self.lbl_imgs_loaded.pack()
+        self.lbl_processed_imgs.pack()
+        self.lbl_weight_saved.pack()
+        self.lbl_avg_weight_saved.pack()
+        self.lbl_avg_process_rate.pack()
 
         self.copyright_lbl.pack()
         self.license_lbl.pack()
-        self.pframe_topo.pack(side=tk.TOP)
-        self.pframe_meio.pack(side=tk.TOP)
-        self.pframe_fundo.pack(side=tk.TOP)
+        self.pframe_top.pack(side=tk.TOP)
+        self.pframe_middle.pack(side=tk.TOP)
+        self.pframe_bottom.pack(side=tk.TOP)
 
-        self.pframe_topo.focus()
-        self.popupRoot.bind("<Command-width>", self.close_window)
+        self.pframe_top.focus()
+        self.popupRoot.bind("<Command-w>", self.close_window)
 
     @staticmethod
     def close_window(event):

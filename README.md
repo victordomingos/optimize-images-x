@@ -3,7 +3,7 @@ A desktop app written in Python, that exposes and unlocks the full power of
 [Optimize Images](https://github.com/victordomingos/optimize-images) in a nice 
 graphical user interface, to help you reduce the file size of images.
 
-![Optimize Images X - Main Window](screenshots/optimize-images-x_main-window.jpg)
+![Optimize Images X - Main Window](screenshots/optimize-images-x_main-window.png)
 
 Like Optimize Images, this application is intended to be almost pure Python, 
 with no special dependencies besides Pillow, therefore ensuring compatibility 

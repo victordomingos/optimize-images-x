@@ -1,16 +1,19 @@
 # Optimize Images X
-A desktop app written in Python, that unlocks the power of [Optimize Images](https://github.com/victordomingos/optimize-images) in a graphical user interface, to help you reduce the file size of images.
+A desktop app written in Python, that exposes and unlocks the full power of 
+[Optimize Images](https://github.com/victordomingos/optimize-images) in a nice 
+graphical user interface, to help you reduce the file size of images.
 
-Like Optimize Images, this application is intended to be almost pure Python, with no special dependencies
-besides Pillow, therefore ensuring compatibility with a wide range of environments. If you don't have the need
-for such a strict dependency management, you may eventually be better served by any several other image optimization utilities that are based on some well known external binaries. You may find, however, that Optimize Images X and its CLI companion offer some useful features that are not always present in a single package, like batch downsizing of images within a folder (and recursively though its subfolders) based on specified maximum width and/or height.
+![Optimize Images X - Main Window](screenshots/optimize-images-x_main-window.jpg)
 
-
-## Full Documentation:
- * [English](https://github.com/victordomingos/optimize-images-x/blob/main/docs/docs_EN.md)
- * [Portugu&ecirc;s](https://github.com/victordomingos/optimize-images-x/blob/main/docs/docs_PT.md)
-
-Please refer to the above links if you want to know about all the options available in this application. For a quick intro, just to get a feeling of what it can do, please keep reading below.
+Like Optimize Images, this application is intended to be almost pure Python, 
+with no special dependencies besides Pillow, therefore ensuring compatibility 
+with a wide range of environments. If you don't have the need for such a strict 
+dependency management, you may eventually be better served by any s everal other 
+image optimization utilities that are based on some well known external 
+binaries. You may find, however, that Optimize Images X and its CLI companion 
+offer some useful features that are not always present in a single package, 
+like batch downsizing of images within a folder (and recursively though its 
+subfolders) based on specified maximum width and/or height.
 
 ## Installation and dependencies:
 
@@ -37,7 +40,35 @@ by us, so your mileage may vary.
 
 ## How to use
 
--- TODO --
+To start compressing images, just add one or more files, or a folder. The 
+process starts as soon as the files are added to the list.
+
+After launching the application for the first time, make sure all settings are 
+configured as desired. The application's default settings are similar to the 
+ones in Optimize Images. Whenever you change a setting it is applied 
+immediately, and it's saved in the app's database, so that it will be can be 
+used again the next time you run the app, without any need to go through all the 
+settings. 
+
+In simple terms, always make sure you have configured Optimize Images X as you 
+want it, but if you just want to use the same settings from last time, just add 
+images.
+
+## Preferences
+
+If you have used Optimize Images before, you probably already know what options 
+are available. If not, please take a few minutes to take a look at the 
+Preferences window and its tabs. You will find a description of each option on 
+the original documentation for the command-line based Optimize Images. 
+
+### General preferences
+![Optimize Images X - Preferences Window: General](screenshots/optimize-images-x_prefs_general.jpg)
+
+### JPEG specific preferences
+![Optimize Images X - Preferences Window: General](screenshots/optimize-images-x_prefs_jpeg.jpg)
+
+### PNG specific preferences
+![Optimize Images X - Preferences Window: General](screenshots/optimize-images-x_prefs_png.jpg)
 
 
 **DISCLAIMER:  
@@ -50,4 +81,4 @@ desired quality.**
   
 ## Did you find a bug or do you have a suggestion?
 
-Please let me know, by opening a new issue or a pull request.
+Please let me know, by opening a new issue, or a pull request.

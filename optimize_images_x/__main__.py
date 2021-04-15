@@ -39,11 +39,6 @@ def main():
     global_style.theme_use(app_settings.app_style)
     root.configure(background='grey95')
     root.title(APP_NAME)
-    x = app_settings.main_window_x
-    y = app_settings.main_window_y
-    width = app_settings.main_window_w
-    height = app_settings.main_window_h
-    root.geometry(f"{width}x{height}+{x}+{y}")
     root.bind_all("<Mod2-q>", root.quit)
     root.bind("<Configure>", app_status.main_window.update_window_status)
     root.mainloop()

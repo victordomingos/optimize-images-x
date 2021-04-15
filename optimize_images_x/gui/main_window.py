@@ -44,6 +44,11 @@ class App(BaseApp):
         self.generate_toolbar()
         self.mount_table()
         self.compose_frames()
+        x = self.app_settings.main_window_x
+        y = self.app_settings.main_window_y
+        width = self.app_settings.main_window_w
+        height = self.app_settings.main_window_h
+        self.master.geometry(f"{width}x{height}+{x}+{y}")
         self.master.deiconify()
         self.master.update()
         self.after_idle(self.show_message)

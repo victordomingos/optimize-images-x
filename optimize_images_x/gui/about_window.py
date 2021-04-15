@@ -131,7 +131,7 @@ class AboutWindow:
 
         self.lbl_avg_weight_saved = ttk.Label(
             self.pframe_middle,
-            text=f"Avg. weight reduction: {human(avg_weight_saved)}")
+            text=f"Avg. weight reduction: {human(avg_weight_saved)}/f")
 
         self.lbl_avg_process_rate = ttk.Label(
             self.pframe_middle,

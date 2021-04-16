@@ -2,7 +2,7 @@ import os
 from typing import List, Tuple
 
 from optimize_images_x.file_utils import search_images
-from optimize_images_x.global_setup import COMPLETE
+from optimize_images_x.global_setup import COMPLETE, PENDING, SKIPPED
 from optimize_images_x.task import Task
 
 
@@ -59,7 +59,7 @@ class AppStatus:
             return 0, 0
 
         size = os.path.getsize(filepath)
-        new_task = Task(filepath, 'Pending…', size, 0)
+        new_task = Task(filepath, PENDING, size, 0)
         self.tasks.append(new_task)
         self.filepaths.add(filepath)
         return 1, size
@@ -67,3 +67,16 @@ class AppStatus:
     def clear_list(self):
         self.tasks = []
         self.filepaths = set()
+
+    def update_task(self, result_task):
+        index = next((i for i, task in enumerate(self.tasks)
+                      if task.filepath == result_task.img), None)
+
+        task = self.tasks[index]
+        if task.filepath == result_task.img:
+            if result_task.was_optimized:
+                task.status = COMPLETE
+                task.final_filesize = result_task.final_size
+            else:
+                task.status = SKIPPED
+            return

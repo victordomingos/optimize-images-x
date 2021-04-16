@@ -7,7 +7,7 @@ from optimize_images_x.file_utils import to_kilobytes, human
 @dataclass
 class Task:
     filepath: str
-    status: str
+    status: int
     original_filesize: int = 0
     final_filesize: int = 0
 
@@ -26,7 +26,7 @@ class Task:
         elif self.final_filesize == self.original_filesize:
             return 0
         else:
-            return self.final_filesize - self.original_filesize
+            return self.original_filesize - self.final_filesize
 
     @property
     def percent_saved(self) -> float:

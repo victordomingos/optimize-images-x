@@ -13,7 +13,7 @@ from optimize_images_x.db.app_settings import AppSettings
 from optimize_images_x.db.app_stats import AppStats
 from optimize_images_x.db.task_settings import TaskSettings
 from optimize_images_x.file_utils import human, img_from_svg
-from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES
+from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES, PENDING, IN_PROGRESS
 from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT
 from optimize_images_x.global_setup import MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT
 from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
@@ -79,19 +79,19 @@ class App(BaseApp):
         self.after(4000, self.update_count)
 
     def mount_table(self):
-        self.tree['columns'] = ('', 'File', 'Details', 'Original Size',
+        self.tree['columns'] = ('', 'File', 'Original Size',
                                 'New Size', '% Saved')
 
         self.tree.column('#0', anchor='w', minwidth=0, stretch=0, width=0)
 
         self.tree.column('', anchor='w', minwidth=30, stretch=0, width=30)
         self.tree.column('File', minwidth=150, stretch=1, width=200)
-        self.tree.column('Details', minwidth=120, stretch=1, width=110)
+        #self.tree.column('Details', minwidth=120, stretch=1, width=110)
         self.tree.column('Original Size', anchor='e', minwidth=90, stretch=0, width=90)
         self.tree.column('New Size', anchor='e', minwidth=90, stretch=0, width=90)
         self.tree.column('% Saved', anchor='e', minwidth=60, stretch=0, width=70)
 
-        self.tree["displaycolumns"] = ('', 'File', 'Details', 'Original Size',
+        self.tree["displaycolumns"] = ('', 'File', 'Original Size',
                                        'New Size', '% Saved')
         self.configure_tree()
         self.leftframe.grid_columnconfigure(0, weight=1)
@@ -212,12 +212,15 @@ class App(BaseApp):
             else:
                 final_size = ''
 
-            values = ('', task.filename, task.status, task.orig_file_size_h,
+            values = ('', task.filename, task.orig_file_size_h,
                       final_size, task.percent_saved)
             self.tree.insert("", index="end", iid=task.filepath, values=values)
 
         self.alternate_colors(self.tree)
-        self.after_idle(self.update_count)
+        if self.app_status.processed_tasks_count:
+            self.after_idle(self.update_report)
+        else:
+            self.after_idle(self.update_count)
 
     def select_files(self):
         if not (folder := self.app_settings.last_opened_dir):
@@ -228,16 +231,20 @@ class App(BaseApp):
                                      initialdir=folder,
                                      multiple=True,
                                      filetypes=SUPPORTED_TYPES)
+        if not filepaths:
+            return
 
+        self.app_status.clear_list()
         added_imgs: int = 0
         added_bytes: int = 0
         for filepath in filepaths:
             added_imgs, added_bytes = self.app_status.add_task(filepath)
 
-        self.app_stats.update_load_stats(added_imgs, added_bytes)
+        if added_imgs:
+            self.update_img_list()
+            self.optimize_images()
 
-        self.after_idle(self.update_img_list)
-        self.after_idle(self.optimize_images)
+        self.app_stats.update_load_stats(added_imgs, added_bytes)
 
     def select_folder(self):
         if not (folder := self.app_settings.last_opened_dir):
@@ -248,16 +255,21 @@ class App(BaseApp):
                             initialdir=folder,
                             mustexist=True)
 
+        if not path:
+            return
+
+        self.app_status.clear_list()
         self.app_settings.last_opened_dir = path
         self.app_settings.save()
 
         n_files, n_bytes = self.app_status.add_folder(
             path, self.task_settings.recurse_subfolders)
 
-        self.app_stats.update_load_stats(n_files, n_bytes)
+        if n_files:
+            self.update_img_list()
+            self.optimize_images()
 
-        self.after_idle(lambda: self.update_img_list())
-        self.after_idle(self.optimize_images)
+        self.app_stats.update_load_stats(n_files, n_bytes)
 
     def clear_list(self):
         self.app_status.clear_list()
@@ -265,12 +277,14 @@ class App(BaseApp):
         self.my_statusbar.hide_progress()
         msg = 'Add image files or folders to start optimizing. ' \
               'Original files will be replaced (always work on copies).'
-        self.after_idle(lambda: self.my_statusbar.set(msg))
+        self.my_statusbar.set(msg)
 
     def optimize_images(self):
         workers = self.task_settings.n_jobs
         tasks = (self.convert_task(t, self.task_settings)
-                 for t in self.app_status.tasks)
+                 for t in self.app_status.tasks
+                 if t.status == PENDING)
+
         n_tasks = self.app_status.tasks_count
         n_files = 0
 
@@ -284,17 +298,21 @@ class App(BaseApp):
             start_time = timer()
             weights_processed = []
             weights_saved = []
-            total_weight_saved = 0
+            optimized_paths = []
             result: TaskResult
 
             try:
                 for result in executor.map(do_optimization, tasks):
                     current_img = result.img
                     n_files += 1
+
                     if result.was_optimized:
                         n_optimized_files += 1
                         weights_processed.append(result.orig_size)
                         weights_saved.append(result.orig_size - result.final_size)
+                        optimized_paths.append(result.img)
+
+                    self.app_status.update_task(result)
                     self.update_row(result)
                     self.my_statusbar.progress_update(n_files)
                     self.my_statusbar.set(f'{n_files}/{n_tasks} processed')
@@ -312,6 +330,7 @@ class App(BaseApp):
                                             sum(weights_saved))
 
         self.my_statusbar.hide_progress(last_update=n_tasks)
+        self.update_report()
 
     def update_row(self, result: TaskResult):
         percent_saved = ((result.orig_size - result.final_size) / result.orig_size) * 100
@@ -320,7 +339,6 @@ class App(BaseApp):
 
         values = (icon,
                   os.path.basename(result.img),
-                  '',
                   human(result.orig_size),
                   human(result.final_size),
                   percent_str)
@@ -329,13 +347,22 @@ class App(BaseApp):
 
     @staticmethod
     def convert_task(task: Task, task_settings: TaskSettings) -> OITask:
+        task.status = IN_PROGRESS
+
+        if task_settings.keep_original_size:
+            max_width = 0
+            max_height = 0
+        else:
+            max_width = task_settings.max_width
+            max_height = task_settings.max_height
+
         return OITask(task.filepath,
                       task_settings.jpg_quality,
                       task_settings.remove_transparency,
                       task_settings.reduce_colors,
                       task_settings.max_colors,
-                      task_settings.max_width,
-                      task_settings.max_height,
+                      max_width,
+                      max_height,
                       task_settings.keep_exif,
                       task_settings.convert_all_to_jpg,
                       task_settings.convert_big_to_jpg,
@@ -359,6 +386,7 @@ class App(BaseApp):
 
     def update_report(self):
         if self.app_status.processed_tasks_count == 0:
+            self.my_statusbar.set('No files were changed.')
             return
 
         processed = self.app_status.processed_tasks_count
@@ -369,8 +397,9 @@ class App(BaseApp):
         avg = human(self.app_status.tasks_total_bytes_saved / processed)
 
         msg = f'Optimized {processed}/{n_tasks} images. ' \
-              f'Saved: {saved} of {orig_size} ({percent}%), avg. {avg} per file.'
-        self.after_idle(lambda: self.my_statusbar.set(msg))
+              f'Saved: {saved} of {orig_size} ({percent:.1f}%), avg. {avg} per file.'
+        self.my_statusbar.set(msg)
+        self.update_idletasks()
 
     def show_message(self):
         if self.app_settings.show_welcome_msg:

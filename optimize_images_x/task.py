@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 
-from optimize_images_x.file_utils import to_kilobytes, human
+from optimize_images_x.calcs import human
 
 
 @dataclass
@@ -20,6 +20,13 @@ class Task:
         return human(self.original_filesize)
 
     @property
+    def final_file_size_h(self) -> str:
+        if self.final_filesize != 0:
+            return human(self.final_filesize)
+        else:
+            return ''
+
+    @property
     def bytes_saved(self) -> int:
         if self.final_filesize == 0:
             return 0
@@ -31,6 +38,6 @@ class Task:
     @property
     def percent_saved(self) -> float:
         if self.bytes_saved == 0:
-            return 0
+            return 0.0
 
-        return self.bytes_saved / self.original_filesize
+        return self.bytes_saved / self.original_filesize * 100

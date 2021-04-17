@@ -1,8 +1,8 @@
 import os
 from typing import List, Tuple
 
-from optimize_images_x.file_utils import search_images
-from optimize_images_x.global_setup import COMPLETE, PENDING, SKIPPED
+from optimize_images_x.search_images import search_images
+from optimize_images_x.global_setup import OPTIMIZED, PENDING, SKIPPED
 from optimize_images_x.task import Task
 
 
@@ -20,7 +20,7 @@ class AppStatus:
 
     @property
     def processed_tasks_count(self):
-        return sum(1 for x in self.tasks if x.status == COMPLETE)
+        return sum(1 for x in self.tasks if x.status == OPTIMIZED)
 
     @property
     def tasks_count(self):
@@ -75,7 +75,7 @@ class AppStatus:
         task = self.tasks[index]
         if task.filepath == result_task.img:
             if result_task.was_optimized:
-                task.status = COMPLETE
+                task.status = OPTIMIZED
                 task.final_filesize = result_task.final_size
             else:
                 task.status = SKIPPED

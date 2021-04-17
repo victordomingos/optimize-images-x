@@ -6,21 +6,22 @@ from timeit import default_timer as timer
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilenames, askdirectory
 
-from optimize_images.data_structures import Task as OITask, TaskResult
+from optimize_images.data_structures import TaskResult
 from optimize_images.do_optimization import do_optimization
 
+from optimize_images_x.calcs import calc_percent_saved, get_percent_str, human
 from optimize_images_x.db.app_settings import AppSettings
 from optimize_images_x.db.app_stats import AppStats
 from optimize_images_x.db.task_settings import TaskSettings
-from optimize_images_x.file_utils import human, img_from_svg
-from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH, SUPPORTED_TYPES, PENDING, IN_PROGRESS
+from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH
 from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT
 from optimize_images_x.global_setup import MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT
+from optimize_images_x.global_setup import SUPPORTED_TYPES, PENDING
 from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
 from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.base_app import BaseApp
 from optimize_images_x.gui.settings_window import SettingsWindow
-from optimize_images_x.task import Task
+from optimize_images_x.task_conversion import get_task_icon, convert_task
 
 
 class App(BaseApp):
@@ -86,7 +87,7 @@ class App(BaseApp):
 
         self.tree.column('', anchor='w', minwidth=30, stretch=0, width=30)
         self.tree.column('File', minwidth=150, stretch=1, width=200)
-        #self.tree.column('Details', minwidth=120, stretch=1, width=110)
+        # self.tree.column('Details', minwidth=120, stretch=1, width=110)
         self.tree.column('Original Size', anchor='e', minwidth=90, stretch=0, width=90)
         self.tree.column('New Size', anchor='e', minwidth=90, stretch=0, width=90)
         self.tree.column('% Saved', anchor='e', minwidth=60, stretch=0, width=70)
@@ -104,28 +105,35 @@ class App(BaseApp):
         os.chdir(os.path.dirname(__file__))
         icon_folder = os.getcwd() + "/../images/icons/"
 
-        self.add_files_icon = img_from_svg(icon_folder + "file-plus.svg")
+        tool_icons = {
+            'add_files': tk.PhotoImage(file=f'{icon_folder}file-plus.png'),
+            'add_folder': tk.PhotoImage(file=f'{icon_folder}folder-plus.png'),
+            'clear_clist': tk.PhotoImage(file=f'{icon_folder}delete.png'),
+            'settings': tk.PhotoImage(file=f'{icon_folder}settings.png')
+        }
+
+        self.add_files_icon = tool_icons["add_files"]
         self.btn_add_files = ttk.Button(self.topframe,
                                         image=self.add_files_icon,
                                         text='Add files…',
                                         compound=tk.TOP,
                                         command=self.select_files)
 
-        self.add_folder_icon = img_from_svg(icon_folder + "folder-plus.svg")
+        self.add_folder_icon = tool_icons["add_folder"]
         self.btn_add_folder = ttk.Button(self.topframe,
                                          image=self.add_folder_icon,
                                          text="Add folder…",
                                          compound=tk.TOP,
                                          command=self.select_folder)
 
-        self.clear_icon = img_from_svg(icon_folder + "delete.svg")
+        self.clear_icon = tool_icons["clear_clist"]
         self.btn_clear_queue = ttk.Button(self.topframe,
                                           image=self.clear_icon,
                                           text="Clear list",
                                           compound=tk.TOP,
                                           command=self.clear_list)
 
-        self.settings_icon = img_from_svg(icon_folder + "settings.svg")
+        self.settings_icon = tool_icons["settings"]
         self.btn_settings = ttk.Button(self.topframe,
                                        image=self.settings_icon,
                                        text="Settings",
@@ -207,13 +215,12 @@ class App(BaseApp):
             self.tree.delete(i)
 
         for task in self.app_status.tasks:
-            if task.final_filesize > 0:
-                final_size = human(task.final_filesize)
-            else:
-                final_size = ''
+            values = (get_task_icon(task),
+                      task.filename,
+                      task.orig_file_size_h,
+                      task.final_file_size_h,
+                      get_percent_str(task.percent_saved))
 
-            values = ('', task.filename, task.orig_file_size_h,
-                      final_size, task.percent_saved)
             self.tree.insert("", index="end", iid=task.filepath, values=values)
 
         self.alternate_colors(self.tree)
@@ -234,7 +241,7 @@ class App(BaseApp):
         if not filepaths:
             return
 
-        self.app_status.clear_list()
+        # self.app_status.clear_list()
         added_imgs: int = 0
         added_bytes: int = 0
         for filepath in filepaths:
@@ -258,7 +265,7 @@ class App(BaseApp):
         if not path:
             return
 
-        self.app_status.clear_list()
+        # self.app_status.clear_list()
         self.app_settings.last_opened_dir = path
         self.app_settings.save()
 
@@ -281,7 +288,7 @@ class App(BaseApp):
 
     def optimize_images(self):
         workers = self.task_settings.n_jobs
-        tasks = (self.convert_task(t, self.task_settings)
+        tasks = (convert_task(t, self.task_settings)
                  for t in self.app_status.tasks
                  if t.status == PENDING)
 
@@ -318,9 +325,7 @@ class App(BaseApp):
                     self.my_statusbar.set(f'{n_files}/{n_tasks} processed')
                     self.update()
             except concurrent.futures.process.BrokenProcessPool as bppex:
-                print(bppex, current_img)  # exception
-            except KeyboardInterrupt:
-                print("\b \n\n  == Operation was interrupted by the user. ==\n")
+                print(bppex, current_img)
 
         processing_time = timer() - start_time
 
@@ -333,46 +338,16 @@ class App(BaseApp):
         self.update_report()
 
     def update_row(self, result: TaskResult):
-        percent_saved = ((result.orig_size - result.final_size) / result.orig_size) * 100
-        percent_str = '--' if percent_saved == 0 else f'{percent_saved:.1f}'
-        icon = '✅' if result.was_optimized else '❌'
+        percent_saved = calc_percent_saved(result)
+        percent_str = get_percent_str(percent_saved)
 
-        values = (icon,
+        values = (get_task_icon(result),
                   os.path.basename(result.img),
                   human(result.orig_size),
                   human(result.final_size),
                   percent_str)
 
         self.tree.item(result.img, values=values)
-
-    @staticmethod
-    def convert_task(task: Task, task_settings: TaskSettings) -> OITask:
-        task.status = IN_PROGRESS
-
-        if task_settings.keep_original_size:
-            max_width = 0
-            max_height = 0
-        else:
-            max_width = task_settings.max_width
-            max_height = task_settings.max_height
-
-        return OITask(task.filepath,
-                      task_settings.jpg_quality,
-                      task_settings.remove_transparency,
-                      task_settings.reduce_colors,
-                      task_settings.max_colors,
-                      max_width,
-                      max_height,
-                      task_settings.keep_exif,
-                      task_settings.convert_all_to_jpg,
-                      task_settings.convert_big_to_jpg,
-                      task_settings.force_delete,
-                      (task_settings.bg_color_red,
-                       task_settings.bg_color_green,
-                       task_settings.bg_color_blue),
-                      task_settings.convert_grayscale,
-                      task_settings.no_comparison,
-                      task_settings.fast_mode)
 
     def update_count(self):
         n_files = self.app_status.tasks_count
@@ -381,7 +356,7 @@ class App(BaseApp):
         if self.app_status.tasks_total_bytes_saved != 0:
             h_bytes = human(self.app_status.tasks_total_bytes_saved)
             percent = self.app_status.tasks_total_percent_saved
-            saved = f' Saved {h_bytes} ({percent} %))'
+            saved = f' Saved {h_bytes} ({percent:.1f}%)'
         self.my_statusbar.set(f'{n_files} files, {total_weight} total{saved}')
 
     def update_report(self):

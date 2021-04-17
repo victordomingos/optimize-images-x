@@ -3,7 +3,6 @@ import tkinter.font
 from tkinter import ttk
 
 from optimize_images_x import __version__
-from optimize_images_x.file_utils import human
 from optimize_images_x.global_setup import APP_NAME
 from optimize_images_x.global_setup import CREDITS, APP_LICENSE
 

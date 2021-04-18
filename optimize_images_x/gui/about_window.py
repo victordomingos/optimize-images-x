@@ -3,6 +3,7 @@ import tkinter.font
 from tkinter import ttk
 
 from optimize_images_x import __version__
+from optimize_images_x.calcs import human
 from optimize_images_x.global_setup import APP_NAME
 from optimize_images_x.global_setup import CREDITS, APP_LICENSE
 
@@ -31,7 +32,7 @@ class ThanksWindow:
         self.thanksframe_bottom = ttk.Frame(
             self.thanksRoot, padding="10 10 10 10")
 
-        self.campo_texto = tk.Text(self.thanksframe, height=20)
+        self.campo_texto = tk.Text(self.thanksframe, wrap='word', height=20)
         self.campo_texto.insert("end", "\n".join(CREDITS))
         self.campo_texto.tag_configure("center", justify='center')
         self.campo_texto.tag_add("center", 1.0, "end")
@@ -92,13 +93,11 @@ class AboutWindow:
 
         self.assin_lbl = ttk.Label(
             self.pframe_top,
-            text="\nSaving space"
-                 "\nand making websites faster "
-                 "\nsince 2018.\n")
+            text="Saving space and making\nwebsites faster since 2018.\n\n")
 
         self.version_lbl = ttk.Label(self.pframe_top,
                                      font=self.copyfont,
-                                     text=f"Version {__version__}\n\n\n")
+                                     text=f"Version {__version__}\n\n")
 
         # ---------- MEIO -----------
 
@@ -142,9 +141,9 @@ class AboutWindow:
         self.license_lbl = ttk.Label(
             self.pframe_bottom, font=self.copyfont, text=APP_LICENSE)
 
-        self.app_lbl.pack()
-        self.assin_lbl.pack()
+        self.app_lbl.pack(pady='20 8')
         self.version_lbl.pack()
+        self.assin_lbl.pack()
 
         self.lbl_imgs_loaded.pack()
         self.lbl_imgs_loaded.pack()

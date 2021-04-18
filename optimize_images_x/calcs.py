@@ -19,13 +19,13 @@ def to_kilobytes(number: int):
 
 
 @lru_cache(maxsize=10)
-def human(number: int, suffix='B') -> str:
+def human(number: int, suffix: str = 'B', divisor: float = 1000.0) -> str:
     """Return a human readable memory size in a string.
     Initially written by Fred Cirera, modified and shared by Sridhar Ratnakumar
     (https://stackoverflow.com/a/1094933/6167478), edited by Victor Domingos.
     """
     for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
-        if abs(number) < 1024.0:
+        if abs(number) < divisor:
             return f"{number:3.1f} {unit}{suffix}"
-        number = number / 1024.0
+        number = number / divisor
     return f"{number:.1f}{'Yi'}{suffix}"

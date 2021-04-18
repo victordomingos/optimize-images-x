@@ -6,13 +6,16 @@ DEFAULT_PATH = os.path.expanduser('~')
 
 APP_PATH = 'xxx'
 APP_NAME = 'Optimize Images X'
-APP_LICENSE = 'copyright text'
+APP_LICENSE = 'MIT License'
 
-CREDITS = """
-    
-    Icon theme from ttps://feathericons.com, 
-    copyrighted under the MIT licence.
-    """
+CREDITS = [
+    "Optimize Images X was initially created by Victor Domingos and both "
+    "inspired and made possible by the work of many other developers, "
+    "including the makers of existing image processing utilities, Pillow, "
+    "as well as the direct contibutors to this project and to it's parent "
+    "application, Optimize Images (the CLI version).",
+    "\nIcon theme from https://feathericons.com, copyrighted under the MIT licence."
+]
 
 SUPPORTED_TYPES = [
     ('All supported images', '.jpg .jpeg .png'),

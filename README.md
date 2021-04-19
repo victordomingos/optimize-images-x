@@ -21,6 +21,7 @@ require:
   - optimize-images>=1.4.0
   - Pillow>=8.0.1
   - piexif>=1.1.3
+  - watchdog>=2.0.2
   
 
 If you are able to swap Pillow with the faster version 

@@ -22,6 +22,7 @@ from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.base_app import BaseApp
 from optimize_images_x.gui.settings_window import SettingsWindow
 from optimize_images_x.task_conversion import get_task_icon, convert_task
+from optimize_images_x.watch import watch_for_new_files, stop_watching
 
 
 class App(BaseApp):
@@ -40,6 +41,9 @@ class App(BaseApp):
 
         self.master.minsize(MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT)
         self.master.maxsize(MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT)
+
+        self.observer = None
+        self.event_handler = None
 
         self.generate_menu()
         self.generate_toolbar()
@@ -87,7 +91,6 @@ class App(BaseApp):
 
         self.tree.column('', anchor='w', minwidth=30, stretch=0, width=30)
         self.tree.column('File', minwidth=150, stretch=1, width=200)
-        # self.tree.column('Details', minwidth=120, stretch=1, width=110)
         self.tree.column('Original Size', anchor='e', minwidth=90, stretch=0, width=90)
         self.tree.column('New Size', anchor='e', minwidth=90, stretch=0, width=90)
         self.tree.column('% Saved', anchor='e', minwidth=60, stretch=0, width=70)
@@ -109,6 +112,7 @@ class App(BaseApp):
             'add_files': tk.PhotoImage(file=f'{icon_folder}file-plus.png'),
             'add_folder': tk.PhotoImage(file=f'{icon_folder}folder-plus.png'),
             'clear_clist': tk.PhotoImage(file=f'{icon_folder}delete.png'),
+            'watch_folder': tk.PhotoImage(file=f'{icon_folder}eye.png'),
             'settings': tk.PhotoImage(file=f'{icon_folder}settings.png')
         }
 
@@ -133,6 +137,13 @@ class App(BaseApp):
                                           compound=tk.TOP,
                                           command=self.clear_list)
 
+        self.watch_folder_icon = tool_icons["watch_folder"]
+        self.btn_watch_folder = ttk.Button(self.topframe,
+                                           image=self.watch_folder_icon,
+                                           text="Watch folder…",
+                                           compound=tk.TOP,
+                                           command=self.select_folder_to_watch)
+
         self.settings_icon = tool_icons["settings"]
         self.btn_settings = ttk.Button(self.topframe,
                                        image=self.settings_icon,
@@ -145,6 +156,7 @@ class App(BaseApp):
         self.btn_add_files.grid(column=0, row=0, ipady=4)
         self.btn_add_folder.grid(column=1, row=0, ipady=4)
         self.btn_clear_queue.grid(column=2, row=0, ipady=4)
+        self.btn_watch_folder.grid(row=0, column=14, ipady=4)
         self.btn_settings.grid(row=0, column=15, ipady=4)  # last button
         # self.dicas.bind(self.btn_settings,
         #                'Mostrar/ocultar a janela de remessas. (⌘3)')
@@ -277,6 +289,33 @@ class App(BaseApp):
             self.optimize_images()
 
         self.app_stats.update_load_stats(n_files, n_bytes)
+
+    def select_folder_to_watch(self):
+        if not (folder := self.app_settings.last_opened_dir):
+            folder = DEFAULT_PATH
+
+        path = askdirectory(parent=self,
+                            title='Choose folder',
+                            initialdir=folder,
+                            mustexist=True)
+
+        if not path:
+            return
+
+        self.app_settings.last_opened_dir = path
+        self.app_settings.save()
+
+        # self.watch_folder_icon = tool_icons["watch_folder"]
+        self.btn_watch_folder.configure(text="Stop watching",
+                                        command=self.stop_watching_folder)
+
+        self.observer, self.event_handler = watch_for_new_files(path, self.task_settings, self)
+
+
+    def stop_watching_folder(self):
+        stop_watching(self.observer)
+        self.btn_watch_folder.configure(text="Watch folder…",
+                                        command=self.select_folder_to_watch)
 
     def clear_list(self):
         self.app_status.clear_list()

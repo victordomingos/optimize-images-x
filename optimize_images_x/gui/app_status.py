@@ -1,8 +1,8 @@
 import os
 from typing import List, Tuple
 
-from optimize_images_x.search_images import search_images
 from optimize_images_x.global_setup import OPTIMIZED, PENDING, SKIPPED
+from optimize_images_x.search_images import search_images
 from optimize_images_x.task import Task
 
 
@@ -41,8 +41,8 @@ class AppStatus:
         else:
             return self.tasks_total_bytes_saved / self.tasks_total_filesize * 100
 
-    def add_task(self, filepath) -> Tuple[int, int]:
-        return self._add_if_new(filepath, self.filepaths)
+    def add_task(self, filepath, status=PENDING, original_size=0, final_size=0) -> Tuple[int, int]:
+        return self._add_if_new(filepath, self.filepaths, status, original_size, final_size)
 
     def add_folder(self, path, recursive: bool) -> Tuple[int, int]:
         added_imgs = 0
@@ -54,12 +54,16 @@ class AppStatus:
 
         return added_imgs, total_added_bytes
 
-    def _add_if_new(self, filepath, filepaths) -> Tuple[int, int]:
+    def _add_if_new(self, filepath, filepaths, status=PENDING, original_size=0, final_size=0) -> Tuple[int, int]:
         if filepath in filepaths:
             return 0, 0
 
-        size = os.path.getsize(filepath)
-        new_task = Task(filepath, PENDING, size, 0)
+        if original_size == 0:
+            size = os.path.getsize(filepath)
+        else:
+            size = original_size
+
+        new_task = Task(filepath, status, size, final_size)
         self.tasks.append(new_task)
         self.filepaths.add(filepath)
         return 1, size

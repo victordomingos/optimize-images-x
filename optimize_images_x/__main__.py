@@ -37,10 +37,6 @@ def main():
     # global_style.theme_use('clam')
     # global_style.theme_use('classic')
     global_style.theme_use(app_settings.app_style)
-    root.configure(background='grey95')
-    root.title(APP_NAME)
-    root.bind_all("<Mod2-q>", root.quit)
-    root.bind("<Configure>", app_status.main_window.update_window_status)
     root.mainloop()
 
 

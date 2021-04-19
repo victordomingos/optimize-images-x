@@ -21,3 +21,11 @@ def search_images(dirpath: str, recursive: bool) -> Iterable[str]:
                 extension = os.path.splitext(dir_entry)[1][1:]
                 if extension.lower() in SUPPORTED_FORMATS:
                     yield os.path.normpath(dir_entry)
+
+
+def is_image(filepath):
+    if not os.path.isfile(filepath):
+        return False
+    else:
+        extension = os.path.splitext(filepath)[1][1:]
+        return extension.lower() in ['jpg', 'jpeg', 'png']

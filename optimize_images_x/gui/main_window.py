@@ -2,18 +2,21 @@ import concurrent.futures
 import os
 import tkinter as tk
 import webbrowser
+from queue import Queue
 from timeit import default_timer as timer
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilenames, askdirectory
 
+from optimize_images.data_structures import Task as OITask
 from optimize_images.data_structures import TaskResult
 from optimize_images.do_optimization import do_optimization
+from watchdog.observers import Observer
 
 from optimize_images_x.calcs import calc_percent_saved, get_percent_str, human
 from optimize_images_x.db.app_settings import AppSettings
 from optimize_images_x.db.app_stats import AppStats
 from optimize_images_x.db.task_settings import TaskSettings
-from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH
+from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH, OPTIMIZED, SKIPPED
 from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT
 from optimize_images_x.global_setup import MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT
 from optimize_images_x.global_setup import SUPPORTED_TYPES, PENDING
@@ -21,14 +24,21 @@ from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
 from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.base_app import BaseApp
 from optimize_images_x.gui.settings_window import SettingsWindow
+from optimize_images_x.search_images import is_image
+from optimize_images_x.task import Task
 from optimize_images_x.task_conversion import get_task_icon, convert_task
-from optimize_images_x.watch import watch_for_new_files, stop_watching
+from optimize_images_x.watch import OptimizeImageEventHandler
 
 
 class App(BaseApp):
     def __init__(self, master, app_status, app_settings, task_settings,
                  app_stats, **kwargs):
         super().__init__(master, **kwargs)
+        self.watch_handler = OptimizeImageEventHandler(self)
+        self.watch_queue = Queue()
+        self.observer = Observer()
+        self.master.configure(background='grey95')
+        self.master.title(APP_NAME)
 
         self.menu = tk.Menu(self.master)
         self.file_menu = tk.Menu(self.menu, postcommand=None)
@@ -42,9 +52,6 @@ class App(BaseApp):
         self.master.minsize(MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT)
         self.master.maxsize(MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT)
 
-        self.observer = None
-        self.event_handler = None
-
         self.generate_menu()
         self.generate_toolbar()
         self.mount_table()
@@ -54,10 +61,21 @@ class App(BaseApp):
         width = self.app_settings.main_window_w
         height = self.app_settings.main_window_h
         self.master.geometry(f"{width}x{height}+{x}+{y}")
+        self.paths_to_ignore = []
+
         self.master.deiconify()
         self.master.update()
         self.after_idle(self.show_message)
         self.clear_list()
+
+        self.master.bind_all("<Mod2-q>", self.shutdown)
+        self.master.bind("<Configure>", self.update_window_status)
+        self.master.bind("<<WatchdogEvent>>", self.handle_watchdog_event)
+
+    def shutdown(self, event):
+        if self.observer is not None:
+            self.stop_watching_folder()
+        self.quit()
 
     def update_window_status(self, event):
         self.app_settings.main_window_x = self.master.winfo_x()
@@ -309,13 +327,87 @@ class App(BaseApp):
         self.btn_watch_folder.configure(text="Stop watching",
                                         command=self.stop_watching_folder)
 
-        self.observer, self.event_handler = watch_for_new_files(path, self.task_settings, self)
+        self.my_statusbar.set("Started watching folder for new files.")
+        self.my_statusbar.show_progress()
+        self.observer.schedule(self.watch_handler, path, recursive=True)
+        self.observer.start()
 
+    def handle_watchdog_event(self, event):
+        """This is called when watchdog posts an event"""
+        #self.my_statusbar.show_progress()
+        watchdog_event = self.watch_queue.get()
+
+        if (watchdog_event.is_directory
+                or not is_image(watchdog_event.src_path)
+                or watchdog_event.src_path in self.paths_to_ignore):
+            return
+
+        start_time = timer()
+        self.paths_to_ignore.append(watchdog_event.src_path)
+        OptimizeImageEventHandler.wait_for_write_finish(watchdog_event.src_path)
+
+        if self.task_settings.keep_original_size:
+            max_width = 0
+            max_height = 0
+        else:
+            max_width = self.task_settings.max_width
+            max_height = self.task_settings.max_height
+
+        img_task = OITask(watchdog_event.src_path,
+                          self.task_settings.jpg_quality,
+                          self.task_settings.remove_transparency,
+                          self.task_settings.reduce_colors,
+                          self.task_settings.max_colors,
+                          max_width,
+                          max_height,
+                          self.task_settings.keep_exif,
+                          self.task_settings.convert_all_to_jpg,
+                          self.task_settings.convert_big_to_jpg,
+                          self.task_settings.force_delete,
+                          (self.task_settings.bg_color_red,
+                           self.task_settings.bg_color_green,
+                           self.task_settings.bg_color_blue),
+                          self.task_settings.convert_grayscale,
+                          self.task_settings.no_comparison,
+                          self.task_settings.fast_mode)
+
+        result: TaskResult = do_optimization(img_task)
+        processing_time = timer() - start_time
+
+        if result.was_optimized:
+            if ((self.task_settings.convert_big_to_jpg or self.task_settings.convert_all_to_jpg)
+                and result.orig_format != result.result_format):
+                self.paths_to_ignore.append(result.img)
+
+            added_imgs, added_bytes = \
+                self.app_status.add_task(result.img, OPTIMIZED,
+                                         result.orig_size, result.final_size)
+
+            self.app_stats.update_process_stats(1, processing_time,
+                                                result.orig_size,
+                                                result.orig_size - result.final_size)
+        else:
+            added_imgs, added_bytes = self.app_status.add_task(result.img,
+                                                               SKIPPED,
+                                                               result.orig_size,
+                                                               result.final_size)
+
+        self.app_stats.update_load_stats(added_imgs, added_bytes)
+        self.after_idle(lambda: self.insert_row(result))
+
+    def notify(self, event):
+        """Forward events from watchdog to GUI"""
+        self.watch_queue.put(event)
+        self.master.event_generate("<<WatchdogEvent>>", when="tail")
 
     def stop_watching_folder(self):
-        stop_watching(self.observer)
+        self.observer.stop()
+        self.observer.join()
         self.btn_watch_folder.configure(text="Watch folder…",
                                         command=self.select_folder_to_watch)
+
+        self.my_statusbar.set("Stopped watching folder.")
+        self.my_statusbar.hide_progress()
 
     def clear_list(self):
         self.app_status.clear_list()
@@ -334,9 +426,7 @@ class App(BaseApp):
         n_tasks = self.app_status.tasks_count
         n_files = 0
 
-        self.my_statusbar.show_progress(n_tasks, 0,
-                                        length=125,
-                                        mode='determinate')
+        self.my_statusbar.show_progress(n_tasks, 0, 125, mode='determinate')
 
         with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
             current_img = ''
@@ -344,7 +434,7 @@ class App(BaseApp):
             start_time = timer()
             weights_processed = []
             weights_saved = []
-            optimized_paths = []
+            # optimized_paths = []
             result: TaskResult
 
             try:
@@ -356,7 +446,7 @@ class App(BaseApp):
                         n_optimized_files += 1
                         weights_processed.append(result.orig_size)
                         weights_saved.append(result.orig_size - result.final_size)
-                        optimized_paths.append(result.img)
+                        # optimized_paths.append(result.img)
 
                     self.app_status.update_task(result)
                     self.update_row(result)
@@ -376,6 +466,35 @@ class App(BaseApp):
         self.my_statusbar.hide_progress(last_update=n_tasks)
         self.update_report()
 
+    def optimize_single_img(self, task: Task):
+        if not os.path.isfile(task.filepath):
+            return
+        start_time = timer()
+        weights_processed = []
+        weights_saved = []
+        optimized_paths = []
+        result: TaskResult
+
+        img_task: OITask = convert_task(task, self.task_settings)
+        result: TaskResult = do_optimization(img_task)
+
+        n_optimized_files = 0
+        if result.was_optimized:
+            n_optimized_files = 1
+            weights_processed.append(result.orig_size)
+            weights_saved.append(result.orig_size - result.final_size)
+            optimized_paths.append(result.img)
+
+        processing_time = timer() - start_time
+        self.app_stats.update_process_stats(n_optimized_files,
+                                            processing_time,
+                                            sum(weights_processed),
+                                            sum(weights_saved))
+
+        self.app_status.update_task(result)
+        self.update_row(result)
+        self.update()
+
     def update_row(self, result: TaskResult):
         percent_saved = calc_percent_saved(result)
         percent_str = get_percent_str(percent_saved)
@@ -387,6 +506,18 @@ class App(BaseApp):
                   percent_str)
 
         self.tree.item(result.img, values=values)
+
+    def insert_row(self, result: TaskResult):
+        percent_saved = calc_percent_saved(result)
+        percent_str = get_percent_str(percent_saved)
+
+        values = (get_task_icon(result),
+                  os.path.basename(result.img),
+                  human(result.orig_size),
+                  human(result.final_size),
+                  percent_str)
+
+        self.tree.insert("", index="end", iid=result.img, values=values)
 
     def update_count(self):
         n_files = self.app_status.tasks_count

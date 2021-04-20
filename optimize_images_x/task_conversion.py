@@ -8,8 +8,16 @@ from optimize_images_x.global_setup import OPTIMIZED, SKIPPED
 from optimize_images_x.task import Task
 
 
-def convert_task(task: Task, task_settings: TaskSettings) -> OITask:
-    task.status = IN_PROGRESS
+def convert_task(task: Union[Task, str], task_settings: TaskSettings) -> OITask:
+    path: str
+    if isinstance(task, Task):
+        task.status = IN_PROGRESS
+        path = task.filepath
+    elif isinstance(task, str):
+        path = task
+    else:
+        msg = f'Argument must be of either type Task or str, not {type(task)}.'
+        raise TypeError(msg)
 
     if task_settings.keep_original_size:
         max_width = 0
@@ -18,7 +26,7 @@ def convert_task(task: Task, task_settings: TaskSettings) -> OITask:
         max_width = task_settings.max_width
         max_height = task_settings.max_height
 
-    return OITask(task.filepath,
+    return OITask(path,
                   task_settings.jpg_quality,
                   task_settings.remove_transparency,
                   task_settings.reduce_colors,

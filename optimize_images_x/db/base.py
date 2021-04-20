@@ -68,23 +68,31 @@ def initialize(db_path: str, current_platform: str) -> None:
         (
             id                 INTEGER UNIQUE PRIMARY KEY   DEFAULT 1,
             show_welcome_msg   BOOLEAN   DEFAULT TRUE, 
+            show_watch_msg     BOOLEAN   DEFAULT TRUE, 
             main_window_x      INTEGER   DEFAULT 0,
             main_window_y      INTEGER   DEFAULT 0,
             main_window_w      INTEGER   DEFAULT 600,
             main_window_h      INTEGER   DEFAULT 340,
             app_style          TEXT,
-            last_opened_dir    TEXT
+            last_opened_dir    TEXT,
+            last_watched_dir   TEXT
         );
 
         INSERT OR IGNORE INTO app_settings 
         (
-             id, show_welcome_msg, main_window_x, main_window_y, 
-             main_window_w, main_window_h, app_style, last_opened_dir
+             id, 
+             show_welcome_msg, show_watch_msg, 
+             main_window_x, main_window_y, main_window_w, main_window_h, 
+             app_style, 
+             last_opened_dir, last_watched_dir
         )
         VALUES 
         (
             1, 
-            1, 0, 0, 600, 340, '{default_app_style}', ''
+            1, 1,
+            0, 0, 600, 340,
+            '{default_app_style}', 
+            '', ''
         );
 
             
@@ -209,21 +217,37 @@ def initialize(db_path: str, current_platform: str) -> None:
     execute(db_path, sql_script)
 
 
-def reset_settings(db_path: str) -> None:
+def reset_settings(db_path: str, current_platform: str) -> None:
     """ Reset all settings to default values.
 
+    @param current_platform:
     @param db_path: path to the database file
     """
-    sql_script = """
+    if current_platform == 'Darwin':
+        default_app_style = 'aqua'
+    elif current_platform == 'Windows':
+        default_app_style = 'vista'
+    else:
+        default_app_style = 'clam'
+
+    n_jobs = cpu_count()
+
+    sql_script = f"""
             INSERT OR REPLACE INTO app_settings 
             (
-                 id, show_welcome_msg, main_window_x,
-                 main_window_y, main_window_w,main_window_h, app_style
+                 id, 
+                 show_welcome_msg, show_watch_msg, 
+                 main_window_x, main_window_y, main_window_w, main_window_h, 
+                 app_style, 
+                 last_opened_dir, last_watched_dir
             )
             VALUES 
             (
                 1, 
-                1, 1, 1, 700, 600, '{default_app_style}'
+                1, 1, 
+                1, 1, 700, 600, 
+                '{default_app_style}', 
+                '',''
             );
 
             INSERT OR REPLACE INTO task_settings 
@@ -237,6 +261,7 @@ def reset_settings(db_path: str) -> None:
                 convert_grayscale,
                 no_comparison,
                 n_jobs,
+                auto_jobs,
 
                 -- JPEG Settings
                 jpg_dynamic_quality,
@@ -261,8 +286,9 @@ def reset_settings(db_path: str) -> None:
                 0,
                 0,
                 0,
-                0,
-
+                {n_jobs},
+                1,
+                
                 -- JPEG Settings
                 1,
                 85,
@@ -285,8 +311,8 @@ def reset_settings(db_path: str) -> None:
 if __name__ == '__main__':
     from optimize_images_x.global_setup import DB_PATH
 
-    # initialize(DB_PATH, 'macOS')
-    # reset_settings(DB_PATH)
+    #initialize(DB_PATH, 'macOS')
+    #reset_settings(DB_PATH, 'Darwin')
 
     print(query_one(DB_PATH, "SELECT * FROM app_settings;"))
     print(query_one(DB_PATH, "SELECT * FROM task_settings;"))

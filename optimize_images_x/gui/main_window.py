@@ -1,5 +1,6 @@
 import concurrent.futures
 import os
+import platform
 import tkinter as tk
 import webbrowser
 from queue import Queue
@@ -56,21 +57,32 @@ class App(BaseApp):
         self.generate_toolbar()
         self.mount_table()
         self.compose_frames()
+
         x = self.app_settings.main_window_x
         y = self.app_settings.main_window_y
         width = self.app_settings.main_window_w
         height = self.app_settings.main_window_h
         self.master.geometry(f"{width}x{height}+{x}+{y}")
+
         self.paths_to_ignore = []
 
         self.master.deiconify()
         self.master.update()
-        self.after_idle(self.show_message)
         self.clear_list()
 
+        self.after_idle(self.show_welcome_msg)
+        self.apply_main_bindings()
+
+    def apply_main_bindings(self):
         self.master.bind_all("<Mod2-q>", self.shutdown)
         self.master.bind("<Configure>", self.update_window_status)
         self.master.bind("<<WatchdogEvent>>", self.handle_watchdog_event)
+
+    def bind_tree(self):
+        self.tree.bind('<<TreeviewSelect>>', self.select_item)
+
+    def unbind_tree(self):
+        self.tree.bind('<<TreeviewSelect>>', None)
 
     def shutdown(self, event):
         if self.observer is not None:
@@ -83,12 +95,6 @@ class App(BaseApp):
         self.app_settings.main_window_w = self.master.winfo_width()
         self.app_settings.main_window_h = self.master.winfo_height()
         self.app_settings.save()
-
-    def bind_tree(self):
-        self.tree.bind('<<TreeviewSelect>>', self.select_item)
-
-    def unbind_tree(self):
-        self.tree.bind('<<TreeviewSelect>>', None)
 
     def select_item(self, *event):
         """
@@ -208,36 +214,49 @@ class App(BaseApp):
 
         self.menu.add_cascade(label="File", menu=self.file_menu)
         self.file_menu.add_command(
-            label="Select files to process",
+            label="Select files to process…",
             command=self.select_files,
             accelerator="Command+o")
         self.file_menu.add_command(
-            label="Select folder to process",
+            label="Select folder to process…",
             command=self.select_folder,
             accelerator="Command+f")
+        self.file_menu.add_separator()
+        self.file_menu.add_command(
+            label="Watch a folder for new files…",
+            command=self.select_folder_to_watch,
+            accelerator="Command+Shift+F")
 
         # self.menuVis = tk.Menu(self.menu)
         # self.menu.add_cascade(label="View", menu=self.menuVis)
 
-        self.windowmenu = tk.Menu(self.menu, name='window')
-        self.menu.add_cascade(menu=self.windowmenu, label='Window')
-        self.windowmenu.add_separator()
+        if platform.system() == 'Darwin':
+            self.windowmenu = tk.Menu(self.menu, name='window')
+            self.menu.add_cascade(menu=self.windowmenu, label='Window')
+            self.windowmenu.add_separator()
+            self.master.createcommand('::tk::mac::ShowPreferences',
+                                      self.create_window_settings)
+        else:
+            self.tools_menu = tk.Menu(self.menu, name='Tools')
+            self.menu.add_cascade(menu=self.tools_menu, label='Tools')
+            self.tools_menu.add_command(label="Select files to process",
+                                        command=self.create_window_settings,
+                                        accelerator="Command+o")
 
         self.helpmenu = tk.Menu(self.menu)
         self.menu.add_cascade(label="Help", menu=self.helpmenu)
-        #       helpmenu.add_command(label="Preferências", command=About)
-        self.helpmenu.add_command(
-            label="About " + APP_NAME, command=lambda: AboutWindow(self.app_stats))
-        self.helpmenu.add_command(
-            label="Credits & Thanks", command=ThanksWindow)
+        self.helpmenu.add_command(label="About " + APP_NAME,
+                                  command=lambda: AboutWindow(self.app_stats))
+        self.helpmenu.add_command(label="Credits & Thanks", command=ThanksWindow)
         self.helpmenu.add_separator()
+
+        url = "https://no-title.victordomingos.com?s=oix"
+        web_command = lambda: webbrowser.open(url, new=1, autoraise=True)
         self.helpmenu.add_command(label="Visit the developer's website",
-                                  command=lambda: webbrowser.open(
-                                      "https://no-title.victordomingos.com?s=oix", new=1, autoraise=True))
-        # self.master.createcommand('::tk::mac::ShowPreferences', prefs_function)
-        # self.master.bind('<<about-idle>>', about_dialog)
-        # self.master.bind('<<open-config-dialog>>', config_dialog)
-        self.master.createcommand('tkAboutDialog', lambda: AboutWindow(self.app_stats))
+                                  command=web_command)
+
+        self.master.createcommand('tkAboutDialog',
+                                  lambda: AboutWindow(self.app_stats))
 
     def update_img_list(self):
         """ Update the image list. """
@@ -309,6 +328,8 @@ class App(BaseApp):
         self.app_stats.update_load_stats(n_files, n_bytes)
 
     def select_folder_to_watch(self):
+        self.show_watch_msg()
+
         if not (folder := self.app_settings.last_opened_dir):
             folder = DEFAULT_PATH
 
@@ -334,65 +355,43 @@ class App(BaseApp):
 
     def handle_watchdog_event(self, event):
         """This is called when watchdog posts an event"""
-        #self.my_statusbar.show_progress()
         watchdog_event = self.watch_queue.get()
 
-        if (watchdog_event.is_directory
-                or not is_image(watchdog_event.src_path)
-                or watchdog_event.src_path in self.paths_to_ignore):
+        is_dir = watchdog_event.is_directory
+        is_not_img = not is_image(watchdog_event.src_path)
+        is_in_ignore_list = watchdog_event.src_path in self.paths_to_ignore
+
+        if is_dir or is_not_img or is_in_ignore_list:
             return
 
         start_time = timer()
-        self.paths_to_ignore.append(watchdog_event.src_path)
-        OptimizeImageEventHandler.wait_for_write_finish(watchdog_event.src_path)
-
-        if self.task_settings.keep_original_size:
-            max_width = 0
-            max_height = 0
-        else:
-            max_width = self.task_settings.max_width
-            max_height = self.task_settings.max_height
-
-        img_task = OITask(watchdog_event.src_path,
-                          self.task_settings.jpg_quality,
-                          self.task_settings.remove_transparency,
-                          self.task_settings.reduce_colors,
-                          self.task_settings.max_colors,
-                          max_width,
-                          max_height,
-                          self.task_settings.keep_exif,
-                          self.task_settings.convert_all_to_jpg,
-                          self.task_settings.convert_big_to_jpg,
-                          self.task_settings.force_delete,
-                          (self.task_settings.bg_color_red,
-                           self.task_settings.bg_color_green,
-                           self.task_settings.bg_color_blue),
-                          self.task_settings.convert_grayscale,
-                          self.task_settings.no_comparison,
-                          self.task_settings.fast_mode)
-
+        img_path = watchdog_event.src_path
+        self.paths_to_ignore.append(img_path)
+        OptimizeImageEventHandler.wait_for_write_finish(img_path)
+        img_task = convert_task(img_path, self.task_settings)
         result: TaskResult = do_optimization(img_task)
         processing_time = timer() - start_time
 
+        status = SKIPPED
         if result.was_optimized:
-            if ((self.task_settings.convert_big_to_jpg or self.task_settings.convert_all_to_jpg)
-                and result.orig_format != result.result_format):
+            status = OPTIMIZED
+            same_format = result.result_format == result.orig_format
+            convert_big = self.task_settings.convert_big_to_jpg
+            convert_all = self.task_settings.convert_all_to_jpg
+
+            # also ignore generated imgs of different format
+            if (convert_big or convert_all) and not same_format:
                 self.paths_to_ignore.append(result.img)
 
-            added_imgs, added_bytes = \
-                self.app_status.add_task(result.img, OPTIMIZED,
-                                         result.orig_size, result.final_size)
-
+            weight_saved = result.orig_size - result.final_size
             self.app_stats.update_process_stats(1, processing_time,
-                                                result.orig_size,
-                                                result.orig_size - result.final_size)
-        else:
-            added_imgs, added_bytes = self.app_status.add_task(result.img,
-                                                               SKIPPED,
-                                                               result.orig_size,
-                                                               result.final_size)
+                                                result.orig_size, weight_saved)
 
-        self.app_stats.update_load_stats(added_imgs, added_bytes)
+        imgs, bytes_ = self.app_status.add_task(result.img, status,
+                                                result.orig_size,
+                                                result.final_size)
+
+        self.app_stats.update_load_stats(imgs, bytes_)
         self.after_idle(lambda: self.insert_row(result))
 
     def notify(self, event):
@@ -434,7 +433,6 @@ class App(BaseApp):
             start_time = timer()
             weights_processed = []
             weights_saved = []
-            # optimized_paths = []
             result: TaskResult
 
             try:
@@ -446,7 +444,6 @@ class App(BaseApp):
                         n_optimized_files += 1
                         weights_processed.append(result.orig_size)
                         weights_saved.append(result.orig_size - result.final_size)
-                        # optimized_paths.append(result.img)
 
                     self.app_status.update_task(result)
                     self.update_row(result)
@@ -546,16 +543,31 @@ class App(BaseApp):
         self.my_statusbar.set(msg)
         self.update_idletasks()
 
-    def show_message(self):
-        if self.app_settings.show_welcome_msg:
-            msg = 'Please notice that all image optimizations are applied ' \
-                  'destructivelly to the provided files. Always work on copies, ' \
-                  'not on original image files.\n\n' \
-                  'Do you want to receive this warning next time?'
+    def show_welcome_msg(self):
+        if self.app_settings.show_welcome_msg == 1:
+            msg1 = 'Please notice that all image optimizations are applied ' \
+                   'destructivelly to the provided files. Always work on copies, ' \
+                   'not on original image files.\n\n' \
+                   'Do you want to receive this warning next time?'
 
-            answer = messagebox.askyesno(title='Welcome to Optimize Images!',
-                                         message=msg,
-                                         parent=self)
+            answer1 = messagebox.askyesno(title='Welcome to Optimize Images!',
+                                          message=msg1,
+                                          parent=self)
 
-            self.app_settings.show_welcome_msg = answer
+            self.app_settings.show_welcome_msg = answer1
+            self.app_settings.save()
+
+    def show_watch_msg(self):
+        if self.app_settings.show_watch_msg:
+            msg2 = 'Optimize Images will enter into Listening Mode, and watch ' \
+                   'the selected folder for any new image files being created ' \
+                   'until you press "Stop". After that moment, if a new image ' \
+                   'file is created, it will be immediately processed.\n\n' \
+                   'Do you want to receive this information next time?'
+
+            answer2 = messagebox.askyesno(title='Watching a folder for new image files',
+                                          message=msg2,
+                                          parent=self)
+
+            self.app_settings.show_watch_msg = answer2
             self.app_settings.save()

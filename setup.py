@@ -67,8 +67,9 @@ setup(name='optimize-images-x',
 
       install_requires=[
           'optimize-images>=1.4.0',
-          'pillow>=8.0.1',
-          'piexif>=1.1.3'
+          'pillow>=8.2.0',
+          'piexif>=1.1.3',
+          'watchdog>=2.0.2'
       ],
 
       entry_points={

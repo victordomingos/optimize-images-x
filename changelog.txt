@@ -10,9 +10,9 @@ v.1.0 beta - 2021-04-?? - First public release
    reduction, including:
         - Optional recursion through subfolders
         - Conversion to grayscale
-        - Image size reduction based on maximum width and/or height
+        - Image downscaling based on maximum width and/or height
         - JPEG quality (lossy compression)
-        - EXIF removal
+        - EXIF data removal
         - PNG transparency removal, with optional background color replacement
         - PNG pallete reduction
         - PNG conversion to JPEG (all, just big images, or none, with optional
@@ -24,10 +24,11 @@ v.1.0 beta - 2021-04-?? - First public release
    position.
  * Some usage statistics available on the About window.
  * All image and stats are stored and processed locally in your own computers,
-   which means no need for file uploads and no worries with privacy issues.
+   which means no need for file uploads and no worries with telemetry and other
+   privacy issues.
  * Compatible with some of the most popular desktop operating systems, including
    macOS, Windows and Linux.
- * It's free (MIT License), please feel free to buy me a coffee, or to 
+ * It's free (MIT License), please feel free to buy me a coffee, or to
    contribute with bug fixing or other code improvements if you'd like so.
 
 

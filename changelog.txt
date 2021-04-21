@@ -1,7 +1,34 @@
 
 
-Histórico de versões:
-====================
+Version History:
+================
+
+v.1.0 beta - 2021-04-?? - First public release
+ * Easy to use GUI, completely based on Python (Tkinter/ttk).
+ * Implements all the features and options currently available on Optimize
+   Images (the original CLI version) for batch image optimization and file size
+   reduction, including:
+        - Optional recursion through subfolders
+        - Conversion to grayscale
+        - Image size reduction based on maximum width and/or height
+        - JPEG quality (lossy compression)
+        - EXIF removal
+        - PNG transparency removal, with optional background color replacement
+        - PNG pallete reduction
+        - PNG conversion to JPEG (all, just big images, or none, with optional
+          deletion of the original PNG file)
+        - ...and more.
+ * Uses multiprocessing to take advantage of all available CPU cores (except the
+   "watch folder" feature, since watchdog's API only seems allow threading).
+ * Automatic saving of all app and task settings, including main window size and
+   position.
+ * Some usage statistics available on the About window.
+ * All image and stats are stored and processed locally in your own computers,
+   which means no need for file uploads and no worries with privacy issues.
+ * Compatible with some of the most popular desktop operating systems, including
+   macOS, Windows and Linux.
+ * It's free (MIT License), please feel free to buy me a coffee, or to 
+   contribute with bug fixing or other code improvements if you'd like so.
 
 
 ---

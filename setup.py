@@ -15,7 +15,8 @@ if used[:2] < required:
     sys.stderr.write(msg)
     sys.exit(1)
 
-short_desc = "A command-line interface (CLI) utility written in pure Python " \
+short_desc = "A desktop app written in Python, that exposes and unlocks the " \
+             "full power of Optimize Images in a nice graphical user interface, " \
              "to help you reduce the file size of images."
 
 
@@ -29,13 +30,13 @@ setup(name='optimize-images-x',
       description=short_desc,
       author="Victor Domingos",
       packages=find_packages(),
-      include_package_data=False,
+      include_package_data=True,
       long_description=read_readme('README.md'),  # for PyPI
       long_description_content_type="text/markdown",
       license='MIT',
       url='https://no-title.victordomingos.com/projects/optimize-images-x/',
       project_urls={
-          'Documentation': 'https://github.com/victordomingos/optimize-images-x/blob/master/docs/docs_EN.md',
+          'Documentation': 'https://github.com/victordomingos/optimize-images-x/',
           'Source': 'https://github.com/victordomingos/optimize-images-x',
           'Bug Reports': 'https://github.com/victordomingos/optimize-images-x/issues',
       },
@@ -55,7 +56,6 @@ setup(name='optimize-images-x',
           'Operating System :: POSIX :: Linux ',
           'Programming Language :: Python :: 3',
           'Programming Language :: Python :: 3.9',
-          'Programming Language :: Python :: 3.10',
           'Topic :: Utilities',
           'Topic :: Multimedia :: Graphics',
           'Topic :: Multimedia :: Graphics :: Graphics Conversion',

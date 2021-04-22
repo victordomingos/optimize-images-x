@@ -3,7 +3,7 @@ A desktop app written in Python, that exposes and unlocks the full power of
 [Optimize Images](https://github.com/victordomingos/optimize-images) in a nice 
 graphical user interface, to help you reduce the file size of images.
 
-![Optimize Images X - Main Window](screenshots/optimize-images-x_main-window.png)
+![Optimize Images X - Main Window](https://github.com/victordomingos/optimize-images-x/blob/main/screenshots/optimize-images-x_main-window.png?raw=true)
 
 Optimize Images X and its CLI companion `optimize-images` offer some useful 
 features that are not always present in a single package, like batch downsizing 
@@ -60,13 +60,13 @@ Preferences window and its tabs. You will find a description of each option on
 the original documentation for the command-line based Optimize Images. 
 
 ### General preferences
-![Optimize Images X - Preferences Window: General](screenshots/optimize-images-x_prefs_general.jpg)
+![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_general.jpg)
 
 ### JPEG specific preferences
-![Optimize Images X - Preferences Window: General](screenshots/optimize-images-x_prefs_jpeg.jpg)
+![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_jpeg.jpg)
 
 ### PNG specific preferences
-![Optimize Images X - Preferences Window: General](screenshots/optimize-images-x_prefs_png.jpg)
+![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_png.jpg)
 
 
 **DISCLAIMER:  

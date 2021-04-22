@@ -10,6 +10,9 @@ features that are not always present in a single package, like batch downsizing
 of images within a folder (and recursively though its 
 subfolders) based on specified maximum width and/or height.
 
+If you were just looking for the original (and slightly faster) command-line 
+user interface (CLI) version of this application, it's a separate project: 
+[Optimize Images](https://github.com/victordomingos/optimize-images). 
 
 ## Installation and dependencies:
 

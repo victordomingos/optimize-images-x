@@ -237,11 +237,11 @@ class App(BaseApp):
             self.master.createcommand('::tk::mac::ShowPreferences',
                                       self.create_window_settings)
         else:
-            self.tools_menu = tk.Menu(self.menu, name='Tools')
+            self.tools_menu = tk.Menu(self.menu, name='tools')
             self.menu.add_cascade(menu=self.tools_menu, label='Tools')
-            self.tools_menu.add_command(label="Select files to process",
+            self.tools_menu.add_command(label="Settings",
                                         command=self.create_window_settings,
-                                        accelerator="Command+o")
+                                        accelerator="Control+s")
 
         self.helpmenu = tk.Menu(self.menu)
         self.menu.add_cascade(label="Help", menu=self.helpmenu)

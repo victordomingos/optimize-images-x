@@ -14,6 +14,7 @@ class AppStatus:
         self.settings_window = None  # Saves a reference to the settings window object
         self.about_window = None  # Saves a reference to the about window object
         self.thanks_window = None  # Saves a reference to the thanks window object
+        self.main_window = None
         self.is_settings_window_open = False
         self.tasks: List[Task] = []
         self.filepaths = set()

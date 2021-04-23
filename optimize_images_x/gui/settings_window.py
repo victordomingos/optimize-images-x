@@ -14,7 +14,7 @@ class SettingsWindow(ttk.Frame):
         super().__init__(master, **kwargs)
         self.master = master
         self.app_status = app_status
-        # self.app_settings = app_settings
+        self.app_settings = app_settings
         self.task_settings = task_settings
         self.master.bind("<Command-w>", self._on_btn_close)
         self.master.focus()
@@ -47,6 +47,7 @@ class SettingsWindow(ttk.Frame):
         self.gui_style.configure("Panel_Title.TLabel", pady=10,
                                  foreground="grey25",
                                  font=("Helvetica Neue", 18, "bold"))
+
         self.gui_style.configure("Panel_Body.TLabel", font=("Lucida Grande", 11))
         self.gui_style.configure("TMenubutton", font=("Lucida Grande", 11))
         self.gui_style.configure('Settings.TLabelframe.Label',
@@ -62,18 +63,22 @@ class SettingsWindow(ttk.Frame):
         self.tab_general = ttk.Frame(self.note, padding=10)
         self.tab_jpeg = ttk.Frame(self.note, padding=10)
         self.tab_png = ttk.Frame(self.note, padding=10)
+        self.tab_more = ttk.Frame(self.note, padding=10)
 
         self.note.add(self.tab_general, text="General")
         self.note.add(self.tab_jpeg, text="JPEG")
         self.note.add(self.tab_png, text="PNG")
+        self.note.add(self.tab_more, text="More…")
 
         self.generate_tab_general()
         self.generate_tab_jpeg()
         self.generate_tab_png()
+        self.generate_tab_more()
 
         self.mount_tab_general()
         self.mount_tab_jpeg()
         self.mount_tab_png()
+        self.mount_tab_more()
 
     def show_main_panel(self):
         self.note.pack(side='top', expand=True, fill='both')
@@ -167,9 +172,9 @@ class SettingsWindow(ttk.Frame):
 
     def mount_tab_general(self):
         self.radio_keep_orig_size.grid(column=0, row=0, columnspan=2,
-                                         sticky='we')
-        self.radio_downsize_img.grid(column=0, row=1, columnspan=2,
                                        sticky='we')
+        self.radio_downsize_img.grid(column=0, row=1, columnspan=2,
+                                     sticky='we')
         self.lbl_max_w.grid(column=0, row=2, sticky='we')
         self.spin_max_w.grid(column=1, row=2, sticky='we')
         self.lbl_max_h.grid(column=0, row=3, sticky='we')
@@ -353,6 +358,64 @@ class SettingsWindow(ttk.Frame):
         self.png_fr1.grid_columnconfigure(1, weight=1)
 
         self.png_fr1.pack(side='top', expand=True, fill='both')
+
+    def generate_tab_more(self):
+        # self.var_del_original = tk.IntVar(value=self.task_settings.force_delete)
+        # self.var_reduce_colors = tk.IntVar(value=self.task_settings.reduce_colors)
+        # self.var_max_colors = tk.IntVar(value=self.task_settings.max_colors)
+        #
+
+        # left:
+        # combo box theme (how to apply instantly?)
+        # [] remember main window position and size
+
+        # right:
+        # [reset All settings]
+        # [Reset usage statistics]
+
+        self.more_fr1 = ttk.Frame(self.tab_more)
+        self.more_left = ttk.Labelframe(self.more_fr1,
+                                        text='User Interface',
+                                        style='Settings.TLabelframe')
+
+        self.more_right = ttk.Labelframe(self.more_fr1,
+                                         text='Reset app defaults',
+                                         style='Settings.TLabelframe')
+
+        themes = ttk.Style().theme_names()
+        self.combo_theme = ttk.Combobox(self.more_left,
+                                        width=40,
+                                        values = themes,
+                                        postcommand=self.update_combo_theme,
+                                        state='readonly')
+
+        self.combo_theme.set(self.app_settings.app_style)
+        self.master.update()
+
+
+    def mount_tab_more(self):
+        self.more_left.grid(column=0, row=0, sticky='wens',
+                            padx='5', ipady=5, ipadx=5)
+        self.more_right.grid(column=1, row=0, sticky='wens',
+                             padx='5', ipady=5, ipadx=5)
+
+        for col in range(0, 16):
+            self.more_left.columnconfigure(col, weight=1)
+            self.more_right.columnconfigure(col, weight=1)
+
+        self.combo_theme.pack()
+
+        self.more_fr1.grid_columnconfigure(0, weight=1)
+        self.more_fr1.grid_columnconfigure(1, weight=1)
+
+        self.more_fr1.pack(side='top', expand=True, fill='both')
+
+    def update_combo_theme(self):
+        theme = self.combo_theme.get()
+        self.gui_style.theme_use(theme)
+        self.app_settings.app_style = theme
+        self.app_settings.save()
+
 
     def choose_color(self):
         self.var_bg_color = askcolor(title='Select background color')

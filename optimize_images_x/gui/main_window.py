@@ -38,13 +38,13 @@ class App(BaseApp):
         self.watch_handler = OptimizeImageEventHandler(self)
         self.watch_queue = Queue()
         self.observer = Observer()
+
+        self.master = master
         self.master.configure(background='grey95')
         self.master.title(APP_NAME)
 
-        self.menu = tk.Menu(self.master)
-        self.file_menu = tk.Menu(self.menu, postcommand=None)
+        self.gui_style = ttk.Style()
 
-        self.master = master
         self.app_status: AppStatus = app_status
         self.app_settings: AppSettings = app_settings
         self.task_settings: TaskSettings = task_settings
@@ -52,6 +52,9 @@ class App(BaseApp):
 
         self.master.minsize(MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT)
         self.master.maxsize(MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT)
+
+        self.menu = tk.Menu(self.master)
+        self.file_menu = tk.Menu(self.menu, postcommand=None)
 
         self.generate_menu()
         self.generate_toolbar()

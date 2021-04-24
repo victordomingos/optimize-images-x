@@ -8,21 +8,21 @@ from tkinter.colorchooser import askcolor
 
 
 class SettingsWindow(ttk.Frame):
-    """ Classe de base para a janela de detalhes de reparações """
-
     def __init__(self, master, app_status, app_settings, task_settings, **kwargs):
         super().__init__(master, **kwargs)
         self.master = master
         self.app_status = app_status
         self.app_settings = app_settings
         self.task_settings = task_settings
+        self.gui_style = ttk.Style()
+
         self.master.bind("<Command-w>", self._on_btn_close)
         self.master.focus()
 
         self.configure_frames_and_styles()
         self.generate_main_panel()
         self.show_main_panel()
-        self.composeFrames()
+        self.compose_frames()
         self.trace_var_changes()
 
     def configure_frames_and_styles(self):
@@ -43,7 +43,6 @@ class SettingsWindow(ttk.Frame):
         self.topframe = ttk.Frame(self.mainframe, padding="5 8 5 5")
         self.centerframe = ttk.Frame(self.mainframe)
 
-        self.gui_style = ttk.Style()
         self.gui_style.configure("Panel_Title.TLabel", pady=10,
                                  foreground="grey25",
                                  font=("Helvetica Neue", 18, "bold"))
@@ -84,7 +83,7 @@ class SettingsWindow(ttk.Frame):
         self.note.pack(side='top', expand=True, fill='both')
         self.note.enable_traversal()
 
-    def composeFrames(self):
+    def compose_frames(self):
         self.topframe.pack(side=tk.TOP, fill=tk.X)
         self.centerframe.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
         self.mainframe.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
@@ -372,6 +371,9 @@ class SettingsWindow(ttk.Frame):
         # right:
         # [reset All settings]
         # [Reset usage statistics]
+        self.radio_themes = []
+        self.var_theme = tk.StringVar()
+        self.var_theme.set(self.app_settings.app_style)
 
         self.more_fr1 = ttk.Frame(self.tab_more)
         self.more_left = ttk.Labelframe(self.more_fr1,
@@ -382,15 +384,13 @@ class SettingsWindow(ttk.Frame):
                                          text='Reset app defaults',
                                          style='Settings.TLabelframe')
 
-        themes = ttk.Style().theme_names()
-        self.combo_theme = ttk.Combobox(self.more_left,
-                                        width=40,
-                                        values = themes,
-                                        postcommand=self.update_combo_theme,
-                                        state='readonly')
+        themes = self.gui_style.theme_names()
+        for theme in themes:
+            button = ttk.Radiobutton(self.more_left, text=theme,
+                                     value=theme,
+                                     variable=self.var_theme)
 
-        self.combo_theme.set(self.app_settings.app_style)
-        self.master.update()
+            self.radio_themes.append(button);
 
 
     def mount_tab_more(self):
@@ -403,7 +403,10 @@ class SettingsWindow(ttk.Frame):
             self.more_left.columnconfigure(col, weight=1)
             self.more_right.columnconfigure(col, weight=1)
 
-        self.combo_theme.pack()
+        #self.combo_theme.pack()
+
+        for radio in self.radio_themes:
+            radio.grid(sticky='w')
 
         self.more_fr1.grid_columnconfigure(0, weight=1)
         self.more_fr1.grid_columnconfigure(1, weight=1)
@@ -412,10 +415,12 @@ class SettingsWindow(ttk.Frame):
 
     def update_combo_theme(self):
         theme = self.combo_theme.get()
+        print(theme)
         self.gui_style.theme_use(theme)
+        self.update()
+        self.combo_theme.set(theme)
         self.app_settings.app_style = theme
         self.app_settings.save()
-
 
     def choose_color(self):
         self.var_bg_color = askcolor(title='Select background color')
@@ -489,6 +494,14 @@ class SettingsWindow(ttk.Frame):
         self.task_settings.bg_color_hex = self.var_bg_color[1]
         self.task_settings.save()
 
+        selected_theme = self.var_theme.get()
+        if self.app_settings.app_style != selected_theme:
+            self.app_settings.app_style = selected_theme
+            self.app_settings.save()
+            self.gui_style.theme_use(selected_theme)
+            print(selected_theme)
+
+
     def trace_var_changes(self):
         gui_vars = (self.var_keep_original_size,
                     self.var_max_w,
@@ -508,7 +521,8 @@ class SettingsWindow(ttk.Frame):
                     self.var_del_original,
                     self.var_reduce_colors,
                     self.var_max_colors,
-                    self.var_remove_alpha)
+                    self.var_remove_alpha,
+                    self.var_theme)
 
         for gui_var in gui_vars:
             gui_var.trace('w', self._on_value_changed)

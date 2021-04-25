@@ -3,7 +3,14 @@
 Version History:
 ================
 
-v.1.0 beta - 2021-04-?? - First public release
+
+v.0.9.1 beta - 2021-04-25
+ * Added the ability to choose a different GUI (ttk) theme.
+ * Added a new button to restore all the default settings.
+ * Fixed an error that prevented the application to launch on Windows/Linux.
+
+--
+v.0.9 beta - 2021-04-23 - First public beta
  * Easy to use GUI, completely based on Python (Tkinter/ttk).
  * Implements all the features and options currently available on Optimize
    Images (the original CLI version) for batch image optimization and file size
@@ -30,7 +37,6 @@ v.1.0 beta - 2021-04-?? - First public release
    macOS, Windows and Linux.
  * It's free (MIT License), please feel free to buy me a coffee, or to
    contribute with bug fixing or other code improvements if you'd like so.
-
 
 ---
 v.0.0 - 2021-04-03

@@ -1,7 +1,9 @@
+import os
+import sys
 import tkinter as tk
 import tkinter.font
 from os import cpu_count
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 # import Pmw
 from tkinter.colorchooser import askcolor
@@ -45,7 +47,7 @@ class SettingsWindow(ttk.Frame):
 
         self.gui_style.configure("Panel_Title.TLabel", pady=10,
                                  foreground="grey25",
-                                 font=("Helvetica Neue", 18, "bold"))
+                                 font=("Helvetica Neue", 16, "bold"))
 
         self.gui_style.configure("Panel_Body.TLabel", font=("Lucida Grande", 11))
         self.gui_style.configure("TMenubutton", font=("Lucida Grande", 11))
@@ -386,12 +388,12 @@ class SettingsWindow(ttk.Frame):
 
         themes = self.gui_style.theme_names()
         for theme in themes:
-            button = ttk.Radiobutton(self.more_left, text=theme,
-                                     value=theme,
+            button = ttk.Radiobutton(self.more_left, text=theme, value=theme,
                                      variable=self.var_theme)
+            self.radio_themes.append(button)
 
-            self.radio_themes.append(button);
-
+        self.btn_reset_all = ttk.Button(self.more_right, text='Reset all settings',
+                                        command=self.reset_all_settings)
 
     def mount_tab_more(self):
         self.more_left.grid(column=0, row=0, sticky='wens',
@@ -403,24 +405,17 @@ class SettingsWindow(ttk.Frame):
             self.more_left.columnconfigure(col, weight=1)
             self.more_right.columnconfigure(col, weight=1)
 
-        #self.combo_theme.pack()
+        # self.combo_theme.pack()
 
         for radio in self.radio_themes:
             radio.grid(sticky='w')
+
+        self.btn_reset_all.grid(sticky='w')
 
         self.more_fr1.grid_columnconfigure(0, weight=1)
         self.more_fr1.grid_columnconfigure(1, weight=1)
 
         self.more_fr1.pack(side='top', expand=True, fill='both')
-
-    def update_combo_theme(self):
-        theme = self.combo_theme.get()
-        print(theme)
-        self.gui_style.theme_use(theme)
-        self.update()
-        self.combo_theme.set(theme)
-        self.app_settings.app_style = theme
-        self.app_settings.save()
 
     def choose_color(self):
         self.var_bg_color = askcolor(title='Select background color')
@@ -496,11 +491,20 @@ class SettingsWindow(ttk.Frame):
 
         selected_theme = self.var_theme.get()
         if self.app_settings.app_style != selected_theme:
+            self.gui_style.theme_use(selected_theme)
             self.app_settings.app_style = selected_theme
             self.app_settings.save()
-            self.gui_style.theme_use(selected_theme)
-            print(selected_theme)
 
+    def reset_all_settings(self):
+        msg = 'Resetting all settings will reload all default settings and the ' \
+              'application will be restarted immediately.\n\n' \
+              'Do you want to proceed?'
+        proceed = messagebox.askyesno(title='Reset all settings and restart?',
+                                      message=msg, parent=self)
+        if proceed:
+            self.app_settings.reset()
+            self.task_settings.reset()
+            self.restart_program()
 
     def trace_var_changes(self):
         gui_vars = (self.var_keep_original_size,
@@ -526,3 +530,11 @@ class SettingsWindow(ttk.Frame):
 
         for gui_var in gui_vars:
             gui_var.trace('w', self._on_value_changed)
+
+    @staticmethod
+    def restart_program():
+        """Restarts the current program.
+        Note: this function does not return. Any cleanup action (like
+        saving data) must be done before calling this function."""
+        python = sys.executable
+        os.execl(python, python, *sys.argv)

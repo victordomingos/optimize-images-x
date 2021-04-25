@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.6
 # encoding: utf-8
 
-from optimize_images_x.db.base import query_one, execute_with_params
+from optimize_images_x.db.base import query_one, execute_with_params, reset_app_settings
 
 
 class AppSettings:
@@ -57,6 +57,9 @@ class AppSettings:
                   self.last_watched_dir)
 
         execute_with_params(self.db_path, sql, values)
+
+    def reset(self):
+        reset_app_settings(self.db_path)
 
     def __str__(self) -> str:
         return f"AppSettings: X: {self.main_window_x}, Y: {self.main_window_y}, " \

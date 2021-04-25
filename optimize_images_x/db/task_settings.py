@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.6
 # encoding: utf-8
 
-from optimize_images_x.db.base import query_one, execute_with_params
+from optimize_images_x.db.base import query_one, execute_with_params, reset_task_settings
 
 
 class TaskSettings:
@@ -125,3 +125,6 @@ class TaskSettings:
                   )
 
         execute_with_params(self.db_path, sql, values)
+
+    def reset(self):
+        reset_task_settings(self.db_path)

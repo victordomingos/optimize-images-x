@@ -1,4 +1,5 @@
 # encoding: utf-8
+import platform
 import sqlite3
 from contextlib import closing
 from os import cpu_count
@@ -44,16 +45,17 @@ def query_one(db_path: str, sql: str) -> Any:
     return row
 
 
-def initialize(db_path: str, current_platform: str) -> None:
+def initialize(db_path: str) -> None:
     """ Create the database file, generate tables and populate default values.
 
     If the database file does not exist, it will be created. Then, each of the
     tables is created, and in case no record exists yet, default values are
     filled up.
 
-    @param current_platform: the current environment ('macOS', 'Windows',...)
     @param db_path: path to the database file
     """
+    current_platform = platform.system()
+
     if current_platform == 'Darwin':
         default_app_style = 'aqua'
     elif current_platform == 'Windows':
@@ -217,12 +219,79 @@ def initialize(db_path: str, current_platform: str) -> None:
     execute(db_path, sql_script)
 
 
-def reset_settings(db_path: str, current_platform: str) -> None:
+def reset_task_settings(db_path: str) -> None:
     """ Reset all settings to default values.
 
-    @param current_platform:
     @param db_path: path to the database file
     """
+    n_jobs = cpu_count()
+
+    sql_script = f"""
+        INSERT OR REPLACE INTO task_settings 
+        (
+            id,
+            keep_original_size,
+            max_width,
+            max_height,
+            recurse_subfolders,
+            fast_mode,
+            convert_grayscale,
+            no_comparison,
+            n_jobs,
+            auto_jobs,
+
+            -- JPEG Settings
+            jpg_dynamic_quality,
+            jpg_quality,
+            keep_exif,
+
+            -- PNG settings
+            convert_big_to_jpg,
+            convert_all_to_jpg,
+            force_delete,
+            reduce_colors,
+            max_colors,
+            remove_transparency,
+            bg_color_red, bg_color_green, bg_color_blue
+        )
+        VALUES (
+            1,
+            1,
+            1600,
+            1000,
+            1,
+            0,
+            0,
+            0,
+            {n_jobs},
+            1,
+            
+            -- JPEG Settings
+            1,
+            85,
+            0,
+
+            -- PNG settings
+            0,
+            0,
+            0,
+            0,
+            255,
+            0,
+            255, 255, 255
+        );
+        """
+
+    execute(db_path, sql_script)
+
+
+def reset_app_settings(db_path: str) -> None:
+    """ Reset all settings to default values.
+
+    @param db_path: path to the database file
+    """
+    current_platform = platform.system()
+
     if current_platform == 'Darwin':
         default_app_style = 'aqua'
     elif current_platform == 'Windows':
@@ -230,89 +299,32 @@ def reset_settings(db_path: str, current_platform: str) -> None:
     else:
         default_app_style = 'clam'
 
-    n_jobs = cpu_count()
-
     sql_script = f"""
-            INSERT OR REPLACE INTO app_settings 
-            (
-                 id, 
-                 show_welcome_msg, show_watch_msg, 
-                 main_window_x, main_window_y, main_window_w, main_window_h, 
-                 app_style, 
-                 last_opened_dir, last_watched_dir
-            )
-            VALUES 
-            (
-                1, 
-                1, 1, 
-                1, 1, 700, 600, 
-                '{default_app_style}', 
-                '',''
-            );
-
-            INSERT OR REPLACE INTO task_settings 
-            (
-                id,
-                keep_original_size,
-                max_width,
-                max_height,
-                recurse_subfolders,
-                fast_mode,
-                convert_grayscale,
-                no_comparison,
-                n_jobs,
-                auto_jobs,
-
-                -- JPEG Settings
-                jpg_dynamic_quality,
-                jpg_quality,
-                keep_exif,
-
-                -- PNG settings
-                convert_big_to_jpg,
-                convert_all_to_jpg,
-                force_delete,
-                reduce_colors,
-                max_colors,
-                remove_transparency,
-                bg_color_red, bg_color_green, bg_color_blue
-            )
-            VALUES (
-                1,
-                1,
-                1600,
-                1000,
-                1,
-                0,
-                0,
-                0,
-                {n_jobs},
-                1,
-                
-                -- JPEG Settings
-                1,
-                85,
-                0,
-
-                -- PNG settings
-                0,
-                0,
-                0,
-                0,
-                255,
-                0,
-                255, 255, 255
-            );
-            """
-
+        INSERT OR REPLACE INTO app_settings 
+        (
+             id, 
+             show_welcome_msg, show_watch_msg, 
+             main_window_x, main_window_y, main_window_w, main_window_h, 
+             app_style, 
+             last_opened_dir, last_watched_dir
+        )
+        VALUES 
+        (
+            1, 
+            1, 1, 
+            1, 1, 700, 600, 
+            '{default_app_style}', 
+            '',''
+        );
+        """
     execute(db_path, sql_script)
 
 
 if __name__ == '__main__':
     from optimize_images_x.global_setup import DB_PATH
 
-    #initialize(DB_PATH, 'macOS')
-    #reset_settings(DB_PATH, 'Darwin')
+    # initialize(DB_PATH, 'macOS')
+    # reset_settings(DB_PATH)
 
     print(query_one(DB_PATH, "SELECT * FROM app_settings;"))
     print(query_one(DB_PATH, "SELECT * FROM task_settings;"))

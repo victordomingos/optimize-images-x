@@ -20,7 +20,7 @@ from optimize_images_x.gui.main_window import App
 
 
 def main():
-    initialize(DB_PATH, platform.system())
+    initialize(DB_PATH)
     app_status = AppStatus()
     app_settings = AppSettings(DB_PATH)
     task_settings = TaskSettings(DB_PATH)

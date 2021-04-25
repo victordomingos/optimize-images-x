@@ -60,14 +60,43 @@ Preferences window and its tabs. You will find a description of each option on
 the original documentation for the command-line based Optimize Images. 
 
 ### General preferences
-![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_general.jpg)
+![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_general.png)
 
 ### JPEG specific preferences
-![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_jpeg.jpg)
+![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_jpeg.png)
 
 ### PNG specific preferences
-![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_png.jpg)
+![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_png.png)
 
+
+### More options
+![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_more.png)
+
+
+#### User interface options
+
+You can choose the graphical user interface theme in the `More…` tab of the 
+Settings Window. The list of available themes will vary depending on your 
+operating system, as well as Python and TK/tcl versions. Just click each one of 
+the radio buttons, and it will be appplied immediately as you click.
+
+
+#### Restoring default settings
+
+One important feature of Optimize Images X is its opinionated choice of default 
+app and task settings, which have been defined with the web in mind and are 
+probably just fine when you just want to apply some compression to the final 
+images to be deployed with you website. So, being able to restore them is also 
+possible. You will find the `Reset all settings` button in the `More…` tab of 
+the Settings Window. 
+
+Restoring default settings requires that the application is restarted, which is 
+done automatically. So, before resetting, you should make sure you there are no 
+more tasks pending or being processed.
+
+Its worth noting that this process will also reset previous choices regarding 
+confirmation dialog boxes, so they will be shown up again even if you had chosen 
+not to see them.
 
 **DISCLAIMER:  
 Please note that the operation is done DESTRUCTIVELY, by replacing the

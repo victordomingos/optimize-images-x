@@ -4,6 +4,12 @@ Version History:
 ================
 
 
+v.0.9.2 beta - 2021-05-??
+ * Added the ability to open the currently selected image in the system's
+   default image viewing application by pressing <Enter> or double-clicking.
+ * On macOS, you may also display a QuickLook window by pressing the spacebar.
+
+--
 v.0.9.1 beta - 2021-04-25
  * Added the ability to choose a different GUI (ttk) theme.
  * Added a new button to restore all the default settings.

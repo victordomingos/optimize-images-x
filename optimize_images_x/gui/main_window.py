@@ -1,6 +1,7 @@
 import concurrent.futures
 import os
 import platform
+import subprocess
 import tkinter as tk
 import webbrowser
 from queue import Queue
@@ -8,6 +9,7 @@ from timeit import default_timer as timer
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilenames, askdirectory
 
+from PIL import Image, ImageTk
 from optimize_images.data_structures import Task as OITask
 from optimize_images.data_structures import TaskResult
 from optimize_images.do_optimization import do_optimization
@@ -83,9 +85,10 @@ class App(BaseApp):
 
     def bind_tree(self):
         self.tree.bind('<<TreeviewSelect>>', self.select_item)
-
-    def unbind_tree(self):
-        self.tree.bind('<<TreeviewSelect>>', None)
+        self.tree.bind('<Return>', self.show_img)
+        self.tree.bind('<Double-1>', self.show_img)
+        if platform.system() == 'Darwin':
+            self.tree.bind('<space>', self.quicklook)
 
     def shutdown(self, event):
         if self.observer is not None:
@@ -104,11 +107,27 @@ class App(BaseApp):
             Display selected image path in status bar after clicking on a
             table row.
         """
+        filepath = self.get_selected_img_path()
+        self.my_statusbar.set(f"{filepath}")
+        self.after(4000, self.update_count)
+
+    def show_img(self, *event):
+        """
+            Display selected image in the system's default image viewer.
+        """
+        filepath = self.get_selected_img_path()
+        img = Image.open(filepath)
+        img.show()
+
+    def quicklook(self, *event):
+        filepath = self.get_selected_img_path()
+        subprocess.run(['qlmanage', '-p', filepath])
+
+    def get_selected_img_path(self):
         click_coords = (self.tree.winfo_pointerx() - self.tree.winfo_rootx(),
                         self.tree.winfo_pointery() - self.tree.winfo_rooty())
         filepath = self.tree.identify('item', *click_coords)
-        self.my_statusbar.set(f"{filepath}")
-        self.after(4000, self.update_count)
+        return filepath
 
     def mount_table(self):
         self.tree['columns'] = ('', 'File', 'Original Size',

@@ -5,12 +5,12 @@ import sys
 from setuptools import setup, find_packages
 
 used = sys.version_info
-required = (3, 8)
+required = (3, 7)
 
 if used[:2] < required:
     msg = f'Unsupported Python version: ' \
           f'{sys.version_info.major}.{sys.version_info.minor}. ' \
-          f'Python 3.8 or later is required.'
+          f'Python 3.7 or later is required.'
 
     sys.stderr.write(msg)
     sys.exit(1)
@@ -40,7 +40,7 @@ setup(name='optimize-images-x',
           'Source': 'https://github.com/victordomingos/optimize-images-x',
           'Bug Reports': 'https://github.com/victordomingos/optimize-images-x/issues',
       },
-      python_requires='>=3.8',
+      python_requires='>=3.7',
       classifiers=[
           'Development Status :: 4 - Beta',
           'Environment :: MacOS X',
@@ -55,6 +55,8 @@ setup(name='optimize-images-x',
           'Operating System :: Unix',
           'Operating System :: POSIX :: Linux ',
           'Programming Language :: Python :: 3',
+          'Programming Language :: Python :: 3.7',
+          'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: 3.8',
           'Programming Language :: Python :: 3.9',
           'Topic :: Utilities',

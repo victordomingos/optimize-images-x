@@ -17,7 +17,7 @@ user interface (CLI) version of this application, it's a separate project:
 ## Installation and dependencies:
 
 To install and run this application, you need to have a working
-Python 3.8+ installation. We try to keep the external dependencies at a minimum, 
+Python 3.7+ installation. We try to keep the external dependencies at a minimum, 
 in order to keep compatibility with different  environments. At this moment, we 
 require:
 

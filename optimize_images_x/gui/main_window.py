@@ -301,7 +301,8 @@ class App(BaseApp):
             self.after_idle(self.update_count)
 
     def select_files(self):
-        if not (folder := self.app_settings.last_opened_dir):
+        folder = self.app_settings.last_opened_dir
+        if not folder:
             folder = DEFAULT_PATH
 
         filepaths = askopenfilenames(parent=self,
@@ -325,7 +326,8 @@ class App(BaseApp):
         self.app_stats.update_load_stats(added_imgs, added_bytes)
 
     def select_folder(self):
-        if not (folder := self.app_settings.last_opened_dir):
+        folder = self.app_settings.last_opened_dir
+        if not folder:
             folder = DEFAULT_PATH
 
         path = askdirectory(parent=self,
@@ -351,8 +353,9 @@ class App(BaseApp):
 
     def select_folder_to_watch(self):
         self.show_watch_msg()
-
-        if not (folder := self.app_settings.last_opened_dir):
+        
+        folder = self.app_settings.last_opened_dir
+        if not folder:
             folder = DEFAULT_PATH
 
         path = askdirectory(parent=self,

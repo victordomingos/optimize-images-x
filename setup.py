@@ -69,10 +69,10 @@ setup(name='optimize-images-x',
                'seo-optimization website-performance gui recursive non-recursive',
 
       install_requires=[
-          'optimize-images>=1.4.0',
+          'optimize-images==1.5.0',
           'pillow>=8.2.0',
-          'piexif>=1.1.3',
-          'watchdog>=2.1.2'
+          'piexif==1.1.3',
+          'watchdog==2.1.2'
       ],
 
       entry_points={

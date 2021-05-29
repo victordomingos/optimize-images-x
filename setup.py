@@ -72,7 +72,7 @@ setup(name='optimize-images-x',
           'optimize-images>=1.4.0',
           'pillow>=8.2.0',
           'piexif>=1.1.3',
-          'watchdog>=2.0.2'
+          'watchdog>=2.1.2'
       ],
 
       entry_points={

@@ -21,10 +21,10 @@ Python 3.7+ installation. We try to keep the external dependencies at a minimum,
 in order to keep compatibility with different  environments. At this moment, we 
 require:
 
-  - optimize-images>=1.5.0
-  - Pillow>=8.2.0
-  - piexif>=1.1.3
-  - watchdog>=2.0.2
+  - optimize-images==1.5.0
+  - Pillow==8.2.0
+  - piexif==1.1.3
+  - watchdog==2.0.2
   
 
 If you are able to swap Pillow with the faster version 

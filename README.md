@@ -26,6 +26,32 @@ require:
   - piexif==1.1.3
   - watchdog==2.1.2
   
+At this time we don't have a simple installer (but that would be cool), and no
+launcher is made available outside of the command-line shell. As it stands
+right now, it is required to have Python and its shell command `pip` on your
+system. You can use `pip` to install the most recent release from the PyPI 
+repository:
+
+```
+python3.9 -m pip install optimize-images-x
+```
+
+It can be a good idea to keep this kind of Python apps isolated in their own 
+virtual environments, so a useful tool is a third-party tool named 
+[pipx](https://pypa.github.io/pipx). Instead of the command indicated above
+you could then use this one:
+
+```
+pipx install optimize-images-x
+```
+
+After that, to run the application, just type `optimize-images-x` in the 
+Terminal and press `Enter`.
+
+It should also run ok in Python 3.10, but please notice there is a nasty 
+visual glitch related to tcl/tk that makes image buttons look bad, when 
+using the `Aqua` theme. If you find that issue, just go to settings and 
+switch to another theme.
 
 If you are able to swap Pillow with the faster version 
 [Pillow-SIMD](https://github.com/uploadcare/pillow-simd), you should be able

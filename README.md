@@ -1,4 +1,5 @@
 # Optimize Images X [![Github commits (since latest release)](https://img.shields.io/github/commits-since/victordomingos/optimize-images-x/latest.svg)](https://github.com/victordomingos/optimize-images-x) ![PyPI](https://img.shields.io/pypi/v/optimize-images-x) ![PyPI - Downloads](https://img.shields.io/pypi/dm/optimize-images-x)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fvictordomingos%2Foptimize-images-x.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fvictordomingos%2Foptimize-images-x?ref=badge_shield)
 A desktop app written in Python, that exposes and unlocks the full power of 
 [Optimize Images](https://github.com/victordomingos/optimize-images) in a nice 
 graphical user interface, to help you reduce the file size of images.
@@ -135,3 +136,7 @@ desired quality.**
 ## Did you find a bug or do you have a suggestion?
 
 Please let me know, by opening a new issue, or a pull request.
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fvictordomingos%2Foptimize-images-x.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fvictordomingos%2Foptimize-images-x?ref=badge_large)

@@ -1,4 +1,6 @@
-# Optimize Images X [![Github commits (since latest release)](https://img.shields.io/github/commits-since/victordomingos/optimize-images-x/latest.svg)](https://github.com/victordomingos/optimize-images-x) ![PyPI](https://img.shields.io/pypi/v/optimize-images-x) ![PyPI - Downloads](https://img.shields.io/pypi/dm/optimize-images-x)
+# Optimize Images X
+[![Github commits (since latest release)](https://img.shields.io/github/commits-since/victordomingos/optimize-images-x/latest.svg)](https://github.com/victordomingos/optimize-images-x) ![PyPI](https://img.shields.io/pypi/v/optimize-images-x)  [![PyPI Python Versions](https://img.shields.io/pypi/pyversions/optimize-images-x.svg)](https://pypi.org/project/optimize-images-x/)  ![https://badgen.net/github/contributors/victordomingos/optimize-images-x](https://badgen.net/github/contributors/victordomingos/optimize-images-x) [![PyPI Downloads](https://static.pepy.tech/personalized-badge/optimize-images-x?period=monthly&units=NONE&left_color=GREY&right_color=ORANGE&left_text=monthly+downloads)](https://pepy.tech/projects/optimize-images-x) [![GitHub License](https://img.shields.io/github/license/victordomingos/optimize-images-x.svg)](https://github.com/victordomingos/optimize-images-x/blob/master/LICENSE) 
+
 A desktop app written in Python, that exposes and unlocks the full power of 
 [Optimize Images](https://github.com/victordomingos/optimize-images) in a nice 
 graphical user interface, to help you reduce the file size of images.

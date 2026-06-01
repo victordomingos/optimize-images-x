@@ -1,9 +1,10 @@
+import platform
 import tkinter as tk
 import tkinter.font
 from functools import lru_cache
 from tkinter import ttk
 
-from optimize_images_x.global_setup import text_color
+from optimize_images_x.global_setup import text_color, ui_font
 from optimize_images_x.gui.extra_tk_utilities.auto_scrollbar import AutoScrollbar
 from optimize_images_x.gui.extra_tk_utilities.status_bar import StatusBar
 
@@ -62,7 +63,7 @@ class BaseApp(ttk.Frame):
 
         self.mainframe = ttk.Frame(master)
         # self.topframe = ttk.Frame(self.mainframe, padding="5 8 5 5")
-        self.topframe = ttk.Frame(self.mainframe, padding="0 0 0 2")
+        self.topframe = ttk.Frame(self.mainframe, padding="6 2 6 2")
 
         self.centerframe = ttk.Frame(self.mainframe)
 
@@ -74,8 +75,8 @@ class BaseApp(ttk.Frame):
         self.centerframe.grid_rowconfigure(1, weight=1)
 
         self.bottomframe = ttk.Frame(self.mainframe)
-        self.btnFont = tkinter.font.Font(family="Lucida Grande", size=10)
-        self.statusFont = tkinter.font.Font(family="Lucida Grande", size=11)
+        self.btnFont = tkinter.font.Font(family=ui_font(), size=10)
+        self.statusFont = tkinter.font.Font(family=ui_font(), size=11)
         self.btnTxtColor = text_color()
         self.btnTxtColor_active = "white"
 
@@ -98,6 +99,7 @@ class BaseApp(ttk.Frame):
                                  orient="vertical",
                                  command=self.tree.yview)
         self.configure_tree()
+        self.my_statusbar.apply_appearance(self._is_dark())
 
     @property
     def screen_size(self):
@@ -121,26 +123,41 @@ class BaseApp(ttk.Frame):
 
     def configure_tree_style(self):
         self.style.configure('Treeview',
-                             font=("Lucida Grande", 11),
+                             font=(ui_font(), 11),
                              foreground=self._fg_color(),
                              rowheight=20)
 
         self.style.configure('Treeview.Heading',
-                             font=("Lucida Grande", 11),
+                             font=(ui_font(), 11),
                              foreground=self._fg_color())
 
     def refresh_appearance(self):
         self.configure_tree_style()
         self.alternate_colors(self.tree)
+        self.my_statusbar.apply_appearance(self._is_dark())
         self._last_dark = self._is_dark()
+
+    def start_appearance_watch(self):
+        self._last_dark = self._is_dark()
+        self._appearance_tick()
+
+    def _appearance_tick(self):
+        if self.style.theme_use() == 'aqua':
+            now_dark = self._is_dark()
+            if now_dark != self._last_dark:
+                self._last_dark = now_dark
+                self.refresh_appearance()
+        self.after(1000, self._appearance_tick)
 
     def compose_frames(self):
         self.topframe.pack(side='top', fill='x')
+        self.separator = ttk.Separator(self.mainframe, orient='horizontal')
+        self.separator.pack(side='bottom', fill='x')
         self.centerframe.pack(side='top', expand=True, fill='both')
         self.bottomframe.pack(side='bottom', fill='x')
         self.mainframe.pack(side='top', expand=True, fill='both')
 
-        self.style.configure("secondary.TButton", font=("Lucida Grande", 11))
+        self.style.configure("secondary.TButton", font=(ui_font(), 11))
 
     def sort_by(self, tree, col, descending):
         """
@@ -195,7 +212,7 @@ class BaseApp(ttk.Frame):
             )
 
         self.style.configure("Treeview.Heading",
-                             font=('Helvetica', 12),
+                             font=(ui_font(), 11),
                              )
 
         # scrollbar for treeview
@@ -219,7 +236,7 @@ class BaseApp(ttk.Frame):
                                         padx=4, pady=4)
 
         window.msglabel = tk.Label(window.internalframe,
-                                   font=tkinter.font.Font(family="Lucida Grande", size=11),
+                                   font=tkinter.font.Font(family=ui_font(), size=11),
                                    foreground="grey22",
                                    text=msg)
 
@@ -230,15 +247,3 @@ class BaseApp(ttk.Frame):
             window.popupframe.place(x=x, y=y + i, anchor="n", bordermode="outside")
             window.popupframe.update()
         window.popupframe.after(1500, window.popupframe.destroy)
-
-    def start_appearance_watch(self):
-        self._last_dark = self._is_dark()
-        self._appearance_tick()
-
-    def _appearance_tick(self):
-        if self.style.theme_use() == 'aqua':
-            now_dark = self._is_dark()
-            if now_dark != self._last_dark:
-                self._last_dark = now_dark
-                self.refresh_appearance()
-        self.after(1000, self._appearance_tick)

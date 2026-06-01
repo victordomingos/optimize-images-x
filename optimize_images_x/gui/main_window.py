@@ -87,6 +87,7 @@ class App(BaseApp):
 
         self.after_idle(self.show_welcome_msg)
         self.apply_main_bindings()
+        self.start_appearance_watch()
 
     def apply_main_bindings(self):
         self.master.bind_all("<Mod2-q>", self.shutdown)

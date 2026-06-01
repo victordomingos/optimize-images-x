@@ -43,3 +43,10 @@ def text_color():
     if platform.system() == 'Darwin':
         return ''  # Aqua theme fills this in automatically
     return 'grey22'  # default color for other platforms or themes
+
+
+def ui_font():
+    """Native UI font family per platform (SF system font on macOS)."""
+    if platform.system() == 'Darwin':
+        return '-apple-system'
+    return 'Helvetica'

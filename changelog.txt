@@ -5,7 +5,7 @@ Version History:
 
 v.2.0.0 beta - 2026-06-01
  * Bumped dependencies to more recent Python versions (we're trying to support
-   officially suppoerted versions) and the recently revised optimize-images
+   officially supperted versions) and the recently revised optimize-images
    v.2.0.0 api.
  * Better theme management on macOS (buttons were not being correctly displayed
    on macOS using the aqua theme in the latest python versions), including

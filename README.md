@@ -19,15 +19,15 @@ user interface (CLI) version of this application, it's a separate project:
 ## Installation and dependencies:
 
 To install and run this application, you need to have a working
-Python 3.7+ installation. We try to keep the external dependencies at a minimum, 
-in order to keep compatibility with different  environments. At this moment, we 
+Python 3.10+ installation. We try to keep the external dependencies at a minimum, 
+in order to keep compatibility with different environments. At this moment, we 
 require:
 
-  - optimize-images==1.5.0
-  - Pillow==8.2.0
-  - piexif==1.1.3
-  - watchdog==2.1.2
-  
+  - optimize-images==2.0.0
+
+This single dependency is installed automatically when you install Optimize 
+Images X and will also fetch Pillow and other dependencies.
+
 At this time we don't have a simple installer (but that would be cool), and no
 launcher is made available outside of the command-line shell. As it stands
 right now, it is required to have Python and its shell command `pip` on your
@@ -114,7 +114,7 @@ the radio buttons, and it will be appplied immediately as you click.
 One important feature of Optimize Images X is its opinionated choice of default 
 app and task settings, which have been defined with the web in mind and are 
 probably just fine when you just want to apply some compression to the final 
-images to be deployed with you website. So, being able to restore them is also 
+images to be deployed with your website. So, being able to restore them is also 
 possible. You will find the `Reset all settings` button in the `More…` tab of 
 the Settings Window. 
 

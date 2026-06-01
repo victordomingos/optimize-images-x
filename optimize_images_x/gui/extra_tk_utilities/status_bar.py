@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.font
 from tkinter import ttk
 
-from optimize_images_x.global_setup import text_color
+from optimize_images_x.global_setup import ui_font
 
 
 class StatusBar(ttk.Frame):
@@ -14,8 +14,8 @@ class StatusBar(ttk.Frame):
         self.progress_value = 0
         self.right_frame = ttk.Frame(self)
 
-        self.lblStatusColor = text_color()
-        self.statusFont = tkinter.font.Font(family="Lucida Grande", size=11)
+        self.lblStatusColor = "grey22"
+        self.statusFont = tkinter.font.Font(family=ui_font(), size=10)
         self.label = ttk.Label(
             self, anchor=tk.W, font=self.statusFont, foreground=self.lblStatusColor)
 
@@ -26,6 +26,14 @@ class StatusBar(ttk.Frame):
         self.label.pack(padx=4, pady=4)
         self.right_frame.place(in_=self, relx=1, rely=1, y=-10, anchor='e')
         self.pack(side=tk.BOTTOM, fill=tk.X)
+
+    def apply_appearance(self, dark):
+        """Recolor the status text to a dimmer, mode-aware secondary tone."""
+        if dark:
+            self.lblStatusColor = '#98989d'
+        else:
+            self.lblStatusColor = '#86868b'
+        self.label.config(foreground=self.lblStatusColor)
 
     def set(self, texto):
         """ Set the text display in the status bar. """
@@ -49,7 +57,7 @@ class StatusBar(ttk.Frame):
         if length:
             self.progress_bar['length'] = length
         if mode == 'indeterminate':
-            self.progress_bar.start(50)
+            self.progress_bar.start()
         else:
             self.progress_bar['maximum'] = max_value
             self.progress_update(value)

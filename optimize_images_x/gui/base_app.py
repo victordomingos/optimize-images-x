@@ -3,6 +3,7 @@ import tkinter.font
 from functools import lru_cache
 from tkinter import ttk
 
+from optimize_images_x.global_setup import text_color
 from optimize_images_x.gui.extra_tk_utilities.auto_scrollbar import AutoScrollbar
 from optimize_images_x.gui.extra_tk_utilities.status_bar import StatusBar
 
@@ -75,7 +76,7 @@ class BaseApp(ttk.Frame):
         self.bottomframe = ttk.Frame(self.mainframe)
         self.btnFont = tkinter.font.Font(family="Lucida Grande", size=10)
         self.statusFont = tkinter.font.Font(family="Lucida Grande", size=11)
-        self.btnTxtColor = "grey22"
+        self.btnTxtColor = text_color()
         self.btnTxtColor_active = "white"
 
         self.tree = ttk.Treeview(self.leftframe, height=60, selectmode='browse')
@@ -83,20 +84,13 @@ class BaseApp(ttk.Frame):
         # get status bar
         self.my_statusbar = StatusBar(self.mainframe)
 
-        self.style.configure('Treeview',
-                             font=("Lucida Grande", 11),
-                             foreground="grey22",
-                             rowheight=20)
-
-        self.style.configure('Treeview.Heading',
-                             font=("Lucida Grande", 11),
-                             foreground="grey22")
+        self.configure_tree_style()
 
         self.style.configure('Treeview', relief='flat', borderwidth=0)
 
-        self.style.configure('TButton',
-                             font=self.btnFont,
-                             foreground="grey22")
+        self.style.configure('TButton', font=self.btnFont)
+        if text_color():
+            self.style.configure('TButton', foreground=text_color())
 
         self.compose_frames()
 
@@ -110,6 +104,35 @@ class BaseApp(ttk.Frame):
         w = self.master.winfo_screenwidth()
         h = self.master.winfo_screenheight()
         return w, h
+
+    def _is_dark(self):
+        if self.style.theme_use() != 'aqua':
+            return False
+        try:
+            rgb = self.winfo_rgb('systemWindowBackgroundColor')
+            return sum(rgb) / 3 < 32768
+        except tk.TclError:
+            return False
+
+    def _fg_color(self):
+        if self.style.theme_use() != 'aqua':
+            return 'grey22'
+        return '#ffffff' if self._is_dark() else '#1d1d1f'
+
+    def configure_tree_style(self):
+        self.style.configure('Treeview',
+                             font=("Lucida Grande", 11),
+                             foreground=self._fg_color(),
+                             rowheight=20)
+
+        self.style.configure('Treeview.Heading',
+                             font=("Lucida Grande", 11),
+                             foreground=self._fg_color())
+
+    def refresh_appearance(self):
+        self.configure_tree_style()
+        self.alternate_colors(self.tree)
+        self._last_dark = self._is_dark()
 
     def compose_frames(self):
         self.topframe.pack(side='top', fill='x')
@@ -135,7 +158,15 @@ class BaseApp(ttk.Frame):
         tree.heading(col, command=lambda col=col: self.sort_by(tree, col, int(not descending)))
         self.alternate_colors(tree)
 
-    def alternate_colors(self, tree, reverse=False, fundo1='grey98', fundo2='white'):
+    def alternate_colors(self, tree, reverse=False, fundo1=None, fundo2=None):
+        if fundo1 is None or fundo2 is None:
+            if self._is_dark():
+                fundo1, fundo2 = '#1e1e1e', '#2a2a2a'
+            else:
+                fundo1, fundo2 = '#ffffff', '#f4f4f6'
+
+        texto = self._fg_color()
+
         if reverse:
             odd = False
         else:
@@ -149,8 +180,8 @@ class BaseApp(ttk.Frame):
                 tree.item(i, tags=("odd",))
                 odd = True
 
-        tree.tag_configure('even', background=fundo1)
-        tree.tag_configure('odd', background=fundo2)
+        tree.tag_configure('even', background=fundo1, foreground=texto)
+        tree.tag_configure('odd', background=fundo2, foreground=texto)
         self.update_idletasks()
 
     def configure_tree(self):
@@ -199,3 +230,15 @@ class BaseApp(ttk.Frame):
             window.popupframe.place(x=x, y=y + i, anchor="n", bordermode="outside")
             window.popupframe.update()
         window.popupframe.after(1500, window.popupframe.destroy)
+
+    def start_appearance_watch(self):
+        self._last_dark = self._is_dark()
+        self._appearance_tick()
+
+    def _appearance_tick(self):
+        if self.style.theme_use() == 'aqua':
+            now_dark = self._is_dark()
+            if now_dark != self._last_dark:
+                self._last_dark = now_dark
+                self.refresh_appearance()
+        self.after(1000, self._appearance_tick)

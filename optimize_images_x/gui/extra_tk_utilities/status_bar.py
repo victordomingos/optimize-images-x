@@ -1,7 +1,8 @@
 import tkinter as tk
 import tkinter.font
-
 from tkinter import ttk
+
+from optimize_images_x.global_setup import text_color
 
 
 class StatusBar(ttk.Frame):
@@ -13,7 +14,7 @@ class StatusBar(ttk.Frame):
         self.progress_value = 0
         self.right_frame = ttk.Frame(self)
 
-        self.lblStatusColor = "grey22"
+        self.lblStatusColor = text_color()
         self.statusFont = tkinter.font.Font(family="Lucida Grande", size=11)
         self.label = ttk.Label(
             self, anchor=tk.W, font=self.statusFont, foreground=self.lblStatusColor)
@@ -48,7 +49,7 @@ class StatusBar(ttk.Frame):
         if length:
             self.progress_bar['length'] = length
         if mode == 'indeterminate':
-            self.progress_bar.start()
+            self.progress_bar.start(50)
         else:
             self.progress_bar['maximum'] = max_value
             self.progress_update(value)

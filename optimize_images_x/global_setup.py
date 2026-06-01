@@ -1,4 +1,5 @@
 import os
+import platform
 
 # todo: account for windows paths...
 DB_PATH = os.path.expanduser('~') + '/optimize_images_x_settings.sqlite'
@@ -35,3 +36,10 @@ MAIN_MIN_WIDTH = 600
 MAIN_MIN_HEIGHT = 250
 MAIN_MAX_WIDTH = 2000
 MAIN_MAX_HEIGHT = 4000
+
+
+def text_color():
+    """Text color that matches dark or bright mode on macOS."""
+    if platform.system() == 'Darwin':
+        return ''  # Aqua theme fills this in automatically
+    return 'grey22'  # default color for other platforms or themes

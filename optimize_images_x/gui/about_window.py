@@ -1,3 +1,4 @@
+import platform
 import tkinter as tk
 import tkinter.font
 from tkinter import ttk
@@ -25,7 +26,8 @@ class ThanksWindow:
             int(_) for _ in self.thanksRoot.geometry().split('+')[0].split('x'))
         self.x = int(w / 2 - self.about_w / 2)
         self.y = int(h / 3 - self.about_h / 2)
-        self.thanksRoot.configure(background='grey92')
+        if platform.system() != 'Darwin':
+            self.thanksRoot.configure(background='grey92')
         self.thanksRoot.geometry(
             "{}x{}+{}+{}".format(self.about_w, self.about_h, self.x, self.y))
         self.thanksframe = ttk.Frame(self.thanksRoot, padding="10 10 10 10")
@@ -70,7 +72,8 @@ class AboutWindow:
                      for _ in self.popupRoot.geometry().split('+')[0].split('x'))
         x = int(w / 2 - self.about_w / 2)
         y = int(h / 3 - self.about_h / 2)
-        self.popupRoot.configure(background='grey92')
+        if platform.system() != 'Darwin':
+            self.popupRoot.configure(background='grey92')
         self.popupRoot.geometry(
             "{}x{}+{}+{}".format(self.about_w, self.about_h, x, y))
 
@@ -137,7 +140,7 @@ class AboutWindow:
 
         # ---------- FUNDO -----------
         self.copyright_lbl = ttk.Label(
-            self.pframe_bottom, font=self.copyfont, text="\n\n© 2021 Victor Domingos")
+            self.pframe_bottom, font=self.copyfont, text="\n\n© 2026 Victor Domingos")
         self.license_lbl = ttk.Label(
             self.pframe_bottom, font=self.copyfont, text=APP_LICENSE)
 

@@ -2,17 +2,18 @@ import concurrent.futures
 import os
 import platform
 import subprocess
+import threading
 import tkinter as tk
 import webbrowser
-from queue import Queue
+from functools import partial
+from queue import Queue, Empty
 from timeit import default_timer as timer
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilenames, askdirectory
 
-from PIL import Image, ImageTk
-from optimize_images.data_structures import Task as OITask
-from optimize_images.data_structures import TaskResult
-from optimize_images.do_optimization import do_optimization
+from PIL import Image
+from optimize_images.api import PublicTaskResult
+from optimize_images.api import optimize_single_image
 from watchdog.observers import Observer
 
 from optimize_images_x.calcs import calc_percent_saved, get_percent_str, human
@@ -28,8 +29,8 @@ from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.base_app import BaseApp
 from optimize_images_x.gui.settings_window import SettingsWindow
 from optimize_images_x.search_images import is_image
-from optimize_images_x.task import Task
-from optimize_images_x.task_conversion import get_task_icon, convert_task
+from optimize_images_x.task_conversion import build_options, resolve_path
+from optimize_images_x.task_conversion import get_task_icon
 from optimize_images_x.watch import OptimizeImageEventHandler
 
 
@@ -39,13 +40,22 @@ class App(BaseApp):
         super().__init__(master, **kwargs)
         self.watch_handler = OptimizeImageEventHandler(self)
         self.watch_queue = Queue()
-        self.observer = Observer()
+        self.observer = None
+        self.watch_stop = None
+        self.watch_worker = None
 
         self.master = master
-        self.master.configure(background='grey95')
+
+        if platform.system() == 'Darwin':
+            pass  # no configure — let Aqua paint the native, mode-aware background
+        else:
+            self.master.configure(background='grey95')
+
         self.master.title(APP_NAME)
 
         self.gui_style = ttk.Style()
+        self.gui_style.configure('Treeview.Heading',
+                                 font=('-apple-system', 11))
 
         self.app_status: AppStatus = app_status
         self.app_settings: AppSettings = app_settings
@@ -81,7 +91,6 @@ class App(BaseApp):
     def apply_main_bindings(self):
         self.master.bind_all("<Mod2-q>", self.shutdown)
         self.master.bind("<Configure>", self.update_window_status)
-        self.master.bind("<<WatchdogEvent>>", self.handle_watchdog_event)
 
     def bind_tree(self):
         self.tree.bind('<<TreeviewSelect>>', self.select_item)
@@ -167,35 +176,40 @@ class App(BaseApp):
                                         image=self.add_files_icon,
                                         text='Add files…',
                                         compound=tk.TOP,
-                                        command=self.select_files)
+                                        command=self.select_files,
+                                        style='Toolbutton')
 
         self.add_folder_icon = tool_icons["add_folder"]
         self.btn_add_folder = ttk.Button(self.topframe,
                                          image=self.add_folder_icon,
                                          text="Add folder…",
                                          compound=tk.TOP,
-                                         command=self.select_folder)
+                                         command=self.select_folder,
+                                         style='Toolbutton')
 
         self.clear_icon = tool_icons["clear_clist"]
         self.btn_clear_queue = ttk.Button(self.topframe,
                                           image=self.clear_icon,
                                           text="Clear list",
                                           compound=tk.TOP,
-                                          command=self.clear_list)
+                                          command=self.clear_list,
+                                          style='Toolbutton')
 
         self.watch_folder_icon = tool_icons["watch_folder"]
         self.btn_watch_folder = ttk.Button(self.topframe,
                                            image=self.watch_folder_icon,
                                            text="Watch folder…",
                                            compound=tk.TOP,
-                                           command=self.select_folder_to_watch)
+                                           command=self.select_folder_to_watch,
+                                           style='Toolbutton')
 
         self.settings_icon = tool_icons["settings"]
         self.btn_settings = ttk.Button(self.topframe,
                                        image=self.settings_icon,
                                        text="Settings",
                                        compound=tk.TOP,
-                                       command=self.create_window_settings)
+                                       command=self.create_window_settings,
+                                       style='Toolbutton')
 
         # self.dicas.bind(self.btn_add_files, 'tooltip text. (⌘N)')
 
@@ -353,7 +367,7 @@ class App(BaseApp):
 
     def select_folder_to_watch(self):
         self.show_watch_msg()
-        
+
         folder = self.app_settings.last_opened_dir
         if not folder:
             folder = DEFAULT_PATH
@@ -375,26 +389,49 @@ class App(BaseApp):
 
         self.my_statusbar.set("Started watching folder for new files.")
         self.my_statusbar.show_progress()
+
+        self.watch_stop = threading.Event()
+        self.watch_worker = threading.Thread(target=self._watch_consumer,
+                                             daemon=True)
+        self.watch_worker.start()
+        self.observer = Observer()
         self.observer.schedule(self.watch_handler, path, recursive=True)
         self.observer.start()
 
-    def handle_watchdog_event(self, event):
-        """This is called when watchdog posts an event"""
-        watchdog_event = self.watch_queue.get()
+    def notify(self, event):
+        """Forward events from watchdog to the consumer thread."""
+        self.watch_queue.put(event)
 
-        is_dir = watchdog_event.is_directory
-        is_not_img = not is_image(watchdog_event.src_path)
-        is_in_ignore_list = watchdog_event.src_path in self.paths_to_ignore
+    def _watch_consumer(self):
+        """Processes queue events out of the main UI thread."""
+        stop = self.watch_stop
+        while not stop.is_set():
+            try:
+                watchdog_event = self.watch_queue.get(timeout=0.2)
+            except Empty:
+                continue
 
-        if is_dir or is_not_img or is_in_ignore_list:
-            return
+            is_dir = watchdog_event.is_directory
+            is_not_img = not is_image(watchdog_event.src_path)
+            is_in_ignore_list = watchdog_event.src_path in self.paths_to_ignore
 
+            if is_dir or is_not_img or is_in_ignore_list:
+                continue
+
+            result, status, processing_time = \
+                self._optimize_watched(watchdog_event)
+
+            self.after_idle(self._on_watch_result,
+                            result, status, processing_time)
+
+    def _optimize_watched(self, watchdog_event):
+        """Optimizes the detected file (runs on the processing thread)."""
         start_time = timer()
         img_path = watchdog_event.src_path
         self.paths_to_ignore.append(img_path)
         OptimizeImageEventHandler.wait_for_write_finish(img_path)
-        img_task = convert_task(img_path, self.task_settings)
-        result: TaskResult = do_optimization(img_task)
+        result: PublicTaskResult = optimize_single_image(
+            img_path, **build_options(self.task_settings))
         processing_time = timer() - start_time
 
         status = SKIPPED
@@ -408,6 +445,11 @@ class App(BaseApp):
             if (convert_big or convert_all) and not same_format:
                 self.paths_to_ignore.append(result.img)
 
+        return result, status, processing_time
+
+    def _on_watch_result(self, result, status, processing_time):
+        """Updates status and grid (runs on main thread)."""
+        if result.was_optimized:
             weight_saved = result.orig_size - result.final_size
             self.app_stats.update_process_stats(1, processing_time,
                                                 result.orig_size, weight_saved)
@@ -417,21 +459,25 @@ class App(BaseApp):
                                                 result.final_size)
 
         self.app_stats.update_load_stats(imgs, bytes_)
-        self.after_idle(lambda: self.insert_row(result))
-
-    def notify(self, event):
-        """Forward events from watchdog to GUI"""
-        self.watch_queue.put(event)
-        self.master.event_generate("<<WatchdogEvent>>", when="tail")
+        self.insert_row(result)
+        self.alternate_colors(self.tree)
 
     def stop_watching_folder(self):
-        self.observer.stop()
-        self.observer.join()
+        if self.observer is not None:
+            self.observer.stop()
+            self.observer.join()
+            self.observer = None
+
+        if self.watch_stop is not None:
+            self.watch_stop.set()
+            self.watch_stop = None
+            self.watch_worker = None
+
         self.btn_watch_folder.configure(text="Watch folder…",
                                         command=self.select_folder_to_watch)
 
-        self.my_statusbar.set("Stopped watching folder.")
         self.my_statusbar.hide_progress()
+        self.my_statusbar.set("Stopped watching folder.")
 
     def clear_list(self):
         self.app_status.clear_list()
@@ -443,9 +489,11 @@ class App(BaseApp):
 
     def optimize_images(self):
         workers = self.task_settings.n_jobs
-        tasks = (convert_task(t, self.task_settings)
+        opts = build_options(self.task_settings)
+        paths = [resolve_path(t)
                  for t in self.app_status.tasks
-                 if t.status == PENDING)
+                 if t.status == PENDING]
+        optimize = partial(optimize_single_image, **opts)
 
         n_tasks = self.app_status.tasks_count
         n_files = 0
@@ -458,10 +506,10 @@ class App(BaseApp):
             start_time = timer()
             weights_processed = []
             weights_saved = []
-            result: TaskResult
+            result: PublicTaskResult
 
             try:
-                for result in executor.map(do_optimization, tasks):
+                for result in executor.map(optimize, paths):
                     current_img = result.img
                     n_files += 1
 
@@ -488,36 +536,7 @@ class App(BaseApp):
         self.my_statusbar.hide_progress(last_update=n_tasks)
         self.update_report()
 
-    def optimize_single_img(self, task: Task):
-        if not os.path.isfile(task.filepath):
-            return
-        start_time = timer()
-        weights_processed = []
-        weights_saved = []
-        optimized_paths = []
-        result: TaskResult
-
-        img_task: OITask = convert_task(task, self.task_settings)
-        result: TaskResult = do_optimization(img_task)
-
-        n_optimized_files = 0
-        if result.was_optimized:
-            n_optimized_files = 1
-            weights_processed.append(result.orig_size)
-            weights_saved.append(result.orig_size - result.final_size)
-            optimized_paths.append(result.img)
-
-        processing_time = timer() - start_time
-        self.app_stats.update_process_stats(n_optimized_files,
-                                            processing_time,
-                                            sum(weights_processed),
-                                            sum(weights_saved))
-
-        self.app_status.update_task(result)
-        self.update_row(result)
-        self.update()
-
-    def update_row(self, result: TaskResult):
+    def update_row(self, result: PublicTaskResult):
         percent_saved = calc_percent_saved(result)
         percent_str = get_percent_str(percent_saved)
 
@@ -529,7 +548,7 @@ class App(BaseApp):
 
         self.tree.item(result.img, values=values)
 
-    def insert_row(self, result: TaskResult):
+    def insert_row(self, result: PublicTaskResult):
         percent_saved = calc_percent_saved(result)
         percent_str = get_percent_str(percent_saved)
 

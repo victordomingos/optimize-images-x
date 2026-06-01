@@ -3,6 +3,14 @@
 Version History:
 ================
 
+v.2.0.0 beta - 2026-06-01
+ * Bumped dependencies to more recent Python versions (we're trying to support
+   officially suppoerted versions) and the recently revised optimize-images
+   v.2.0.0 api.
+ * Better theme management on macOS (buttons were not being correctly displayed
+   on macOS using the aqua theme in the latest python versions), including
+   toolbar icons, alternate background in the grid rows, and support for dark
+   mode using the aqua theme on macOS.
 
 v.0.9.2 beta - 2021-05-29
  * Added the ability to open the currently selected image in the system's

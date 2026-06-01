@@ -1,7 +1,6 @@
 import os
 import sys
 import tkinter as tk
-import tkinter.font
 from os import cpu_count
 from tkinter import ttk, messagebox
 
@@ -494,6 +493,8 @@ class SettingsWindow(ttk.Frame):
             self.gui_style.theme_use(selected_theme)
             self.app_settings.app_style = selected_theme
             self.app_settings.save()
+            if self.app_status.main_window is not None:
+                self.app_status.main_window.refresh_appearance()
 
     def reset_all_settings(self):
         msg = 'Resetting all settings will reload all default settings and the ' \
@@ -529,7 +530,7 @@ class SettingsWindow(ttk.Frame):
                     self.var_theme)
 
         for gui_var in gui_vars:
-            gui_var.trace('w', self._on_value_changed)
+            gui_var.trace_add('write', self._on_value_changed)
 
     @staticmethod
     def restart_program():

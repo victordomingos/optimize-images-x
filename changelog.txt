@@ -4,7 +4,10 @@ Version History:
 ================
 
 v.2.0.1 - 2026-06-??
- * [WIP]
+ * Added a spec file for PyInstaller. Now you can build a standalone executable
+   that packages all the dependencies and the application itself, using
+    PyInstaller (yay!). Tested on macOS.
+ * Minor fixes and improvements.
 
 v.2.0.0 beta - 2026-06-01
  * Bumped dependencies to more recent Python versions (we're trying to support

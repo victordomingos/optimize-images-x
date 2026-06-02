@@ -28,40 +28,40 @@ require:
 This single dependency is installed automatically when you install Optimize 
 Images X and will also fetch Pillow and other dependencies.
 
-At this time we don't have a simple installer (but that would be cool), and no
-launcher is made available outside of the command-line shell. As it stands
-right now, it is required to have Python and its shell command `pip` on your
-system. You can use `pip` to install the most recent release from the PyPI 
-repository:
+There are a few ways to install Optimize Images X. The simplest, if you don't
+use Python yourself, is to download a prebuilt application from the project's
+[GitHub releases](https://github.com/victordomingos/optimize-images-x/releases)
+page, when available for your system.
+
+If you have Python on your system, you can also install the most recent release
+from the PyPI repository using `pip`:
 
 ```
-python3.9 -m pip install optimize-images-x
+python3 -m pip install optimize-images-x
 ```
 
-It can be a good idea to keep this kind of Python apps isolated in their own 
-virtual environments, so a useful tool is a third-party tool named 
-[pipx](https://pypa.github.io/pipx). Instead of the command indicated above
-you could then use this one:
+It can be a good idea to keep this kind of Python app isolated in its own
+virtual environment. Two convenient third-party tools for that are
+[pipx](https://pypa.github.io/pipx) and [uv](https://docs.astral.sh/uv/).
+Instead of the command indicated above, you could then use one of these:
 
 ```
 pipx install optimize-images-x
 ```
 
+```
+uv tool install optimize-images-x
+```
+
 After that, to run the application, just type `optimize-images-x` in the 
 Terminal and press `Enter`.
 
-It should also run ok in Python 3.10, but please notice there is a nasty 
-visual glitch related to tcl/tk that makes image buttons look bad, when 
-using the `Aqua` theme. If you find that issue, just go to settings and 
-switch to another theme.
-
-If you are able to swap Pillow with the faster version 
-[Pillow-SIMD](https://github.com/uploadcare/pillow-simd), you should be able
-to get a considerably faster speed. For that reason, we provide, as a 
-friendly courtesy, an optional shell script (`replace_pillow__macOS.sh`) to 
-replace Pillow with the faster Pillow-SIMD on macOS. Please notice, however, 
-that it usually requires a compilation step, and it was not throughly tested 
-by us, so your mileage may vary.
+Please note that, being a graphical application, Optimize Images X needs a
+Python installation that includes Tcl/Tk support. This is normally the case for
+the official Python distributions and most system packages. If you let a tool
+manage and download its own Python for you and the window fails to open, that
+particular build may be missing Tcl/Tk; in that case, install it against a
+Python that includes it.
 
 
 ## How to use
@@ -71,7 +71,7 @@ process starts as soon as the files are added to the list.
 
 After launching the application for the first time, make sure all settings are 
 configured as desired. The application's default settings are similar to the 
-ones in Optimize Images. Whenever you change a setting it is applied 
+ones in Optimize Images. Whenever you change a setting, it is applied 
 immediately, and it's saved in the app's database, so that it will be can be 
 used again the next time you run the app, without any need to go through all the 
 settings. 
@@ -134,6 +134,44 @@ recover any eventual damaged files or any resulting images that don't have the
 desired quality.**
   
   
+## Building a standalone application
+
+If you would like to build a standalone, double-clickable application (a `.app`
+on macOS, an `.exe` on Windows, or an executable on Linux), you can do so with
+[PyInstaller](https://pyinstaller.org). The repository includes a ready-to-use
+build recipe, `optimize-images-x.spec`.
+
+A couple of things to know before you start. PyInstaller is not a
+cross-compiler, so you need to run the build on the same kind of system you are
+targeting: build the macOS app on a Mac, the Windows executable on Windows, and
+so on. Also, at the time of writing, PyInstaller does not yet support Python
+3.15, so the build should be done with a supported version (for example, the
+standard, GIL-enabled Python 3.14). This does not affect which Python you use
+for everyday development; it only matters for the build.
+
+It is a good idea to use a dedicated virtual environment for building:
+
+```
+python3.14 -m venv venv-build
+source venv-build/bin/activate
+pip install .
+pip install pyinstaller
+python -m PyInstaller optimize-images-x.spec
+```
+
+On Windows, activate the environment with `venv-build\Scripts\activate`
+instead.
+
+The result is placed in the `dist` folder: on macOS you get
+`dist/Optimize Images X.app`, and on Windows and Linux you get a folder
+containing the executable. The `build` and `dist` folders are build artifacts
+and are not meant to be committed to the repository.
+
+The application currently ships without a custom icon; you can add one by
+editing the `icon` entries near the top of `optimize-images-x.spec` (use a
+`.icns` file on macOS and a `.ico` file on Windows).
+
+
 ## Did you find a bug or do you have a suggestion?
 
 Please let me know, by opening a new issue, or a pull request.

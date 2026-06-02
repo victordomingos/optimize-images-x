@@ -1,5 +1,6 @@
 import os
 import platform
+import sys
 
 # todo: account for windows paths...
 DB_PATH = os.path.expanduser('~') + '/optimize_images_x_settings.sqlite'
@@ -43,6 +44,15 @@ def text_color():
     if platform.system() == 'Darwin':
         return ''  # Aqua theme fills this in automatically
     return 'grey22'  # default color for other platforms or themes
+
+
+def resource_path(relative):
+    """Absolute path to a bundled resource, in frozen, pip or source contexts."""
+    if hasattr(sys, '_MEIPASS'):
+        base = os.path.join(sys._MEIPASS, 'optimize_images_x')
+    else:
+        base = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base, relative)
 
 
 def ui_font():

@@ -24,6 +24,7 @@ from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH, OPTIMIZED, SK
 from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT
 from optimize_images_x.global_setup import MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT
 from optimize_images_x.global_setup import SUPPORTED_TYPES, PENDING
+from optimize_images_x.global_setup import resource_path
 from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
 from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.base_app import BaseApp
@@ -161,15 +162,14 @@ class App(BaseApp):
         self.bind_tree()
 
     def generate_toolbar(self):
-        os.chdir(os.path.dirname(__file__))
-        icon_folder = os.getcwd() + "/../images/icons/"
+        icon_folder = resource_path('images/icons')
 
         tool_icons = {
-            'add_files': tk.PhotoImage(file=f'{icon_folder}file-plus.png'),
-            'add_folder': tk.PhotoImage(file=f'{icon_folder}folder-plus.png'),
-            'clear_clist': tk.PhotoImage(file=f'{icon_folder}delete.png'),
-            'watch_folder': tk.PhotoImage(file=f'{icon_folder}eye.png'),
-            'settings': tk.PhotoImage(file=f'{icon_folder}settings.png')
+            'add_files': tk.PhotoImage(file=os.path.join(icon_folder, 'file-plus.png')),
+            'add_folder': tk.PhotoImage(file=os.path.join(icon_folder, 'folder-plus.png')),
+            'clear_clist': tk.PhotoImage(file=os.path.join(icon_folder, 'delete.png')),
+            'watch_folder': tk.PhotoImage(file=os.path.join(icon_folder, 'eye.png')),
+            'settings': tk.PhotoImage(file=os.path.join(icon_folder, 'settings.png'))
         }
 
         self.add_files_icon = tool_icons["add_files"]

@@ -4,8 +4,9 @@
 A desktop app written in Python, that unlocks the power of Optimize Images in a
 graphical user interface, to help you reduce the file size of images.
 
-© 2021 Victor Domingos, MIT License
+© 2026 Victor Domingos, MIT License
 """
+import multiprocessing
 import platform
 import tkinter as tk
 from tkinter import ttk
@@ -20,6 +21,7 @@ from optimize_images_x.gui.main_window import App
 
 
 def main():
+    multiprocessing.freeze_support()
     initialize(DB_PATH)
     app_status = AppStatus()
     app_settings = AppSettings(DB_PATH)

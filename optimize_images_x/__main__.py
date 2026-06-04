@@ -19,6 +19,13 @@ from optimize_images_x.global_setup import APP_NAME, DB_PATH
 from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.main_window import App
 
+try:
+    from tkinterdnd2 import TkinterDnD
+    DND_AVAILABLE = True
+except ImportError:
+    TkinterDnD = None
+    DND_AVAILABLE = False
+
 
 def main():
     multiprocessing.freeze_support()
@@ -31,7 +38,11 @@ def main():
     app_stats.session_count += 1
     app_stats.save()
 
-    root = tk.Tk()
+    if DND_AVAILABLE:
+        root = TkinterDnD.Tk()
+    else:
+        root = tk.Tk()
+
     app_status.main_window = App(root, app_status, app_settings,
                                  task_settings, app_stats)
 

@@ -77,6 +77,9 @@ class AppStatus:
         index = next((i for i, task in enumerate(self.tasks)
                       if task.filepath == result_task.img), None)
 
+        if index is None:
+            return
+
         task = self.tasks[index]
         if task.filepath == result_task.img:
             if result_task.was_optimized:

@@ -45,6 +45,27 @@ def query_one(db_path: str, sql: str) -> Any:
     return row
 
 
+def _add_column_if_missing(db_path: str, table: str, column: str,
+                           definition: str) -> None:
+    """Add a column to an existing table only if it is not already present."""
+    with closing(sqlite3.connect(db_path)) as conn:
+        info = conn.execute(f"PRAGMA table_info({table})").fetchall()
+        if not info:
+            return  # table does not exist yet; the CREATE will include the column
+        existing = [row[1] for row in info]
+        if column not in existing:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+            conn.commit()
+
+
+def migrate(db_path: str) -> None:
+    """Apply in-place schema migrations for databases created by older versions."""
+    _add_column_if_missing(db_path, 'app_settings',
+                           'show_dnd_msg', 'BOOLEAN DEFAULT TRUE')
+    _add_column_if_missing(db_path, 'app_settings',
+                           'enable_dnd', 'BOOLEAN DEFAULT FALSE')
+
+
 def initialize(db_path: str) -> None:
     """ Create the database file, generate tables and populate default values.
 
@@ -71,6 +92,8 @@ def initialize(db_path: str) -> None:
             id                 INTEGER UNIQUE PRIMARY KEY   DEFAULT 1,
             show_welcome_msg   BOOLEAN   DEFAULT TRUE, 
             show_watch_msg     BOOLEAN   DEFAULT TRUE, 
+            show_dnd_msg       BOOLEAN   DEFAULT TRUE, 
+            enable_dnd         BOOLEAN   DEFAULT FALSE, 
             main_window_x      INTEGER   DEFAULT 0,
             main_window_y      INTEGER   DEFAULT 0,
             main_window_w      INTEGER   DEFAULT 600,
@@ -83,7 +106,7 @@ def initialize(db_path: str) -> None:
         INSERT OR IGNORE INTO app_settings 
         (
              id, 
-             show_welcome_msg, show_watch_msg, 
+             show_welcome_msg, show_watch_msg, show_dnd_msg, enable_dnd,
              main_window_x, main_window_y, main_window_w, main_window_h, 
              app_style, 
              last_opened_dir, last_watched_dir
@@ -91,13 +114,13 @@ def initialize(db_path: str) -> None:
         VALUES 
         (
             1, 
-            1, 1,
+            1, 1, 1, 0,
             0, 0, 600, 340,
             '{default_app_style}', 
             '', ''
         );
 
-            
+
         CREATE TABLE IF NOT EXISTS task_settings 
         (
             id                   INTEGER UNIQUE PRIMARY KEY   DEFAULT 1,
@@ -110,12 +133,12 @@ def initialize(db_path: str) -> None:
             no_comparison        BOOLEAN   DEFAULT FALSE,
             n_jobs               INTEGER   DEFAULT 0,    
             auto_jobs            BOOLEAN   DEFAULT TRUE,    
-            
+
             -- JPEG Settings
             jpg_dynamic_quality  BOOLEAN   DEFAULT TRUE,
             jpg_quality          INTEGER   DEFAULT 85,
             keep_exif            BOOLEAN   DEFAULT FALSE,
-            
+
             -- PNG settings
             convert_big_to_jpg   BOOLEAN   DEFAULT FALSE,
             convert_all_to_jpg   BOOLEAN   DEFAULT FALSE,
@@ -128,7 +151,7 @@ def initialize(db_path: str) -> None:
             bg_color_blue        INTEGER   DEFAULT 255,
             bg_color_hex         TEXT      DEFAULT '#FFFFFF'
             );
-            
+
         INSERT OR IGNORE INTO task_settings 
         (
             id,
@@ -141,12 +164,12 @@ def initialize(db_path: str) -> None:
             no_comparison,
             n_jobs,
             auto_jobs,
-            
+
             -- JPEG Settings
             jpg_dynamic_quality,
             jpg_quality,
             keep_exif,
-            
+
             -- PNG settings
             convert_big_to_jpg,
             convert_all_to_jpg,
@@ -168,12 +191,12 @@ def initialize(db_path: str) -> None:
             0,
             {n_jobs},
             1,
-            
+
             -- JPEG Settings
             1,
             85,
             0,
-            
+
             -- PNG settings
             0,
             0,
@@ -184,7 +207,7 @@ def initialize(db_path: str) -> None:
             255, 255, 255,
             '#FFFFFF'
         );
-            
+
         CREATE TABLE IF NOT EXISTS app_stats (
             id                       INTEGER UNIQUE PRIMARY KEY   DEFAULT 1,
             images_loaded            INTEGER  DEFAULT 0,
@@ -196,7 +219,7 @@ def initialize(db_path: str) -> None:
             session_count            INTEGER  DEFAULT 0, -- all app sessions
             sessions_with_processed  INTEGER  DEFAULT 0 -- sessions width/processed imgs
             );
-            
+
         INSERT OR IGNORE INTO app_stats
         (
             id,
@@ -216,6 +239,7 @@ def initialize(db_path: str) -> None:
         );
         """
 
+    migrate(db_path)
     execute(db_path, sql_script)
 
 
@@ -265,7 +289,7 @@ def reset_task_settings(db_path: str) -> None:
             0,
             {n_jobs},
             1,
-            
+
             -- JPEG Settings
             1,
             85,

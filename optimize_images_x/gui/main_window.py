@@ -3,6 +3,7 @@ import os
 import platform
 import subprocess
 import threading
+import time
 import tkinter as tk
 import webbrowser
 from functools import partial
@@ -34,6 +35,13 @@ from optimize_images_x.task_conversion import build_options, resolve_path
 from optimize_images_x.task_conversion import get_task_icon
 from optimize_images_x.watch import OptimizeImageEventHandler
 
+try:
+    from tkinterdnd2 import DND_FILES
+    DND_AVAILABLE = True
+except ImportError:
+    DND_FILES = None
+    DND_AVAILABLE = False
+
 
 class App(BaseApp):
     def __init__(self, master, app_status, app_settings, task_settings,
@@ -41,6 +49,11 @@ class App(BaseApp):
         super().__init__(master, **kwargs)
         self.watch_handler = OptimizeImageEventHandler(self)
         self.watch_queue = Queue()
+        self.batch_queue = Queue()
+        self.batch_done = threading.Event()
+        self.batch_processed = 0
+        self.batch_n_tasks = 0
+        self.batch_summary = (0, 0.0, 0, 0)
         self.observer = None
         self.watch_stop = None
         self.watch_worker = None
@@ -89,6 +102,7 @@ class App(BaseApp):
         self.after_idle(self.show_welcome_msg)
         self.apply_main_bindings()
         self.start_appearance_watch()
+        self.apply_dnd()
 
     def apply_main_bindings(self):
         self.master.bind_all("<Mod2-q>", self.shutdown)
@@ -480,6 +494,95 @@ class App(BaseApp):
         self.my_statusbar.hide_progress()
         self.my_statusbar.set("Stopped watching folder.")
 
+    def apply_dnd(self):
+        """Register or unregister the window as a drop target, per the setting."""
+        if not DND_AVAILABLE:
+            return
+
+        if self.app_settings.enable_dnd:
+            self.master.drop_target_register(DND_FILES)
+            self.master.dnd_bind('<<Drop>>', self.handle_drop)
+        else:
+            try:
+                self.master.drop_target_unregister()
+            except Exception:
+                pass
+
+    @staticmethod
+    def _parse_dropped_paths(data):
+        """Split the <<Drop>> data string into individual filesystem paths."""
+        paths = []
+        token = ''
+        in_braces = False
+        for char in data:
+            if char == '{':
+                in_braces = True
+            elif char == '}':
+                in_braces = False
+                paths.append(token)
+                token = ''
+            elif char == ' ' and not in_braces:
+                if token:
+                    paths.append(token)
+                    token = ''
+            else:
+                token += char
+        if token:
+            paths.append(token)
+        return paths
+
+    def handle_drop(self, event):
+        if not (DND_AVAILABLE and self.app_settings.enable_dnd):
+            return
+
+        if self.app_settings.show_dnd_msg:
+            if not self.show_dnd_msg():
+                return
+
+        recurse = self.task_settings.recurse_subfolders
+        added_imgs = 0
+        added_bytes = 0
+        for path in self._parse_dropped_paths(event.data):
+            if os.path.isdir(path):
+                n_files, n_bytes = self.app_status.add_folder(path, recurse)
+                added_imgs += n_files
+                added_bytes += n_bytes
+            elif os.path.isfile(path) and is_image(path):
+                n_files, n_bytes = self.app_status.add_task(path)
+                added_imgs += n_files
+                added_bytes += n_bytes
+
+        if added_imgs:
+            self.update_img_list()
+            self.optimize_images()
+
+        self.app_stats.update_load_stats(added_imgs, added_bytes)
+
+    def show_dnd_msg(self):
+        """Confirm the destructive operation before the first drag-and-drop.
+
+        Returns True if the user wants to proceed with the current drop.
+        """
+        proceed = messagebox.askokcancel(
+            title='Drag and drop',
+            message='The dropped images will be optimized in place, replacing '
+                    'the original files (always work on copies). Dropped '
+                    'folders are scanned according to your "Recurse through '
+                    'subfolders" setting.\n\nDo you want to proceed?',
+            parent=self)
+
+        if not proceed:
+            return False
+
+        keep_warning = messagebox.askyesno(
+            title='Drag and drop',
+            message='Do you want to see this warning next time?',
+            parent=self)
+
+        self.app_settings.show_dnd_msg = keep_warning
+        self.app_settings.save()
+        return True
+
     def clear_list(self):
         self.app_status.clear_list()
         self.update_img_list()
@@ -489,51 +592,93 @@ class App(BaseApp):
         self.my_statusbar.set(msg)
 
     def optimize_images(self):
-        workers = self.task_settings.n_jobs
         opts = build_options(self.task_settings)
         paths = [resolve_path(t)
                  for t in self.app_status.tasks
                  if t.status == PENDING]
-        optimize = partial(optimize_single_image, **opts)
+
+        if not paths:
+            return
 
         n_tasks = self.app_status.tasks_count
-        n_files = 0
-
         self.my_statusbar.show_progress(n_tasks, 0, 125, mode='determinate')
 
-        with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
-            current_img = ''
-            n_optimized_files = 0
-            start_time = timer()
-            weights_processed = []
-            weights_saved = []
-            result: PublicTaskResult
+        # Make sure the pending rows are visible before work starts.
+        self.update_idletasks()
 
-            try:
+        self.batch_queue = Queue()
+        self.batch_done = threading.Event()
+        self.batch_processed = 0
+        self.batch_n_tasks = n_tasks
+
+        worker = threading.Thread(target=self._run_batch,
+                                 args=(opts, paths),
+                                 daemon=True)
+        worker.start()
+        self.after(50, self._drain_batch_queue)
+
+    def _run_batch(self, opts, paths):
+        """Run the optimization pool off the main thread, queueing each result."""
+        workers = self.task_settings.n_jobs
+        optimize = partial(optimize_single_image, **opts)
+        n_optimized_files = 0
+        start_time = timer()
+        weights_processed = 0
+        weights_saved = 0
+        current_img = ''
+
+        try:
+            with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
                 for result in executor.map(optimize, paths):
                     current_img = result.img
-                    n_files += 1
-
                     if result.was_optimized:
                         n_optimized_files += 1
-                        weights_processed.append(result.orig_size)
-                        weights_saved.append(result.orig_size - result.final_size)
-
-                    self.app_status.update_task(result)
-                    self.update_row(result)
-                    self.my_statusbar.progress_update(n_files)
-                    self.my_statusbar.set(f'{n_files}/{n_tasks} processed')
-                    self.update()
-            except concurrent.futures.process.BrokenProcessPool as bppex:
-                print(bppex, current_img)
+                        weights_processed += result.orig_size
+                        weights_saved += result.orig_size - result.final_size
+                    self.batch_queue.put(result)
+                    time.sleep(0)  # brief yield to the UI thread
+        except concurrent.futures.process.BrokenProcessPool as bppex:
+            print(bppex, current_img)
 
         processing_time = timer() - start_time
+        self.batch_summary = (n_optimized_files, processing_time,
+                              weights_processed, weights_saved)
+        self.batch_done.set()
 
+    def _drain_batch_queue(self):
+        """Pull all available results, update their rows, and repaint once."""
+        updated = False
+        while True:
+            try:
+                result = self.batch_queue.get_nowait()
+            except Empty:
+                break
+            updated = True
+            self.batch_processed += 1
+            try:
+                self.app_status.update_task(result)
+                self.update_row(result)
+            except Exception as ex:
+                print('Could not update row for', result.img, '-', ex)
+
+        if updated:
+            self.my_statusbar.progress_update(self.batch_processed)
+            self.my_statusbar.set(
+                f'{self.batch_processed}/{self.batch_n_tasks} processed')
+            self.update()
+
+        if self.batch_done.is_set() and self.batch_queue.empty():
+            self._on_batch_done(*self.batch_summary, self.batch_n_tasks)
+        else:
+            self.after(50, self._drain_batch_queue)
+
+    def _on_batch_done(self, n_optimized_files, processing_time,
+                       weights_processed, weights_saved, n_tasks):
+        """Finalize stats and report on the main thread when the batch ends."""
         self.app_stats.update_process_stats(n_optimized_files,
                                             processing_time,
-                                            sum(weights_processed),
-                                            sum(weights_saved))
-
+                                            weights_processed,
+                                            weights_saved)
         self.my_statusbar.hide_progress(last_update=n_tasks)
         self.update_report()
 
@@ -547,7 +692,10 @@ class App(BaseApp):
                   human(result.final_size),
                   percent_str)
 
-        self.tree.item(result.img, values=values)
+        try:
+            self.tree.item(result.img, values=values)
+        except tk.TclError:
+            pass
 
     def insert_row(self, result: PublicTaskResult):
         percent_saved = calc_percent_saved(result)

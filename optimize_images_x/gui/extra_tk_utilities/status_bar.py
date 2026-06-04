@@ -38,7 +38,6 @@ class StatusBar(ttk.Frame):
     def set(self, texto):
         """ Set the text display in the status bar. """
         self.label.config(text=texto)
-        self.label.update()
 
     def clear(self):
         """ Remove all text from the status bar. """
@@ -89,8 +88,6 @@ class StatusBar(ttk.Frame):
         if value > self.progress_value:
             self.progress_value = value
             self.progress_bar['value'] = self.progress_value
-            self.progress_bar.update()
-            self.progress_bar.after(150, lambda: self.progress_update(self.progress_value + 1))
 
     def progress_reset(self):
         """ Make the progress bar go back to zero. """

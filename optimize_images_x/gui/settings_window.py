@@ -7,6 +7,12 @@ from tkinter import ttk, messagebox
 # import Pmw
 from tkinter.colorchooser import askcolor
 
+try:
+    import tkinterdnd2  # noqa: F401
+    DND_AVAILABLE = True
+except ImportError:
+    DND_AVAILABLE = False
+
 
 class SettingsWindow(ttk.Frame):
     def __init__(self, master, app_status, app_settings, task_settings, **kwargs):
@@ -100,6 +106,7 @@ class SettingsWindow(ttk.Frame):
         self.var_no_comparison = tk.IntVar(value=self.task_settings.no_comparison)
         self.var_jobs = tk.IntVar(value=self.task_settings.n_jobs)
         self.var_auto_jobs = tk.IntVar(value=self.task_settings.auto_jobs)
+        self.var_enable_dnd = tk.IntVar(value=self.app_settings.enable_dnd)
 
         self.general_fr1 = ttk.Frame(self.tab_general)
         self.general_left = ttk.Labelframe(self.general_fr1,
@@ -157,6 +164,18 @@ class SettingsWindow(ttk.Frame):
             text="No file size comparison",
             variable=self.var_no_comparison)
 
+        if DND_AVAILABLE:
+            dnd_text = "Enable drag-and-drop"
+            dnd_state = "normal"
+        else:
+            dnd_text = "Enable drag-and-drop (requires tkinterdnd2)"
+            dnd_state = "disabled"
+        self.chk_enable_dnd = ttk.Checkbutton(
+            self.general_right,
+            text=dnd_text,
+            state=dnd_state,
+            variable=self.var_enable_dnd)
+
         self.lbl_jobs = ttk.Label(self.general_right,
                                   text="Simultaneous jobs:",
                                   style="Panel_Body.TLabel")
@@ -184,10 +203,11 @@ class SettingsWindow(ttk.Frame):
         self.chk_fast_mode.grid(column=0, row=1, sticky='we')
         self.chk_convert_gray.grid(column=0, row=2, sticky='we')
         self.chk_no_comparison.grid(column=0, row=3, sticky='we')
+        self.chk_enable_dnd.grid(column=0, row=4, sticky='we')
 
-        self.lbl_jobs.grid(column=0, row=4, sticky='we', pady='12 0')
-        self.spin_jobs.grid(column=0, row=5, sticky='we')
-        self.chk_auto_jobs.grid(column=0, row=6, sticky='we')
+        self.lbl_jobs.grid(column=0, row=5, sticky='we', pady='12 0')
+        self.spin_jobs.grid(column=0, row=6, sticky='we')
+        self.chk_auto_jobs.grid(column=0, row=7, sticky='we')
 
         self.general_left.grid(column=0, row=0, sticky='wens',
                                padx='5', ipady=5, ipadx=5)
@@ -496,6 +516,13 @@ class SettingsWindow(ttk.Frame):
             if self.app_status.main_window is not None:
                 self.app_status.main_window.refresh_appearance()
 
+        enable_dnd = bool(self.var_enable_dnd.get())
+        if self.app_settings.enable_dnd != enable_dnd:
+            self.app_settings.enable_dnd = enable_dnd
+            self.app_settings.save()
+            if self.app_status.main_window is not None:
+                self.app_status.main_window.apply_dnd()
+
     def reset_all_settings(self):
         msg = 'Resetting all settings will reload all default settings and the ' \
               'application will be restarted immediately.\n\n' \
@@ -517,6 +544,7 @@ class SettingsWindow(ttk.Frame):
                     self.var_no_comparison,
                     self.var_jobs,
                     self.var_auto_jobs,
+                    self.var_enable_dnd,
 
                     self.var_dynamic,
                     self.var_jpeg_quality,

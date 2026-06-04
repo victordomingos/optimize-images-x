@@ -9,6 +9,8 @@ class AppSettings:
         self.db_path = db_path
         self.show_welcome_msg = True
         self.show_watch_msg = True
+        self.show_dnd_msg = True
+        self.enable_dnd = False
         self.main_window_x = 1
         self.main_window_y = 1
         self.main_window_w = 700
@@ -23,6 +25,8 @@ class AppSettings:
         settings = query_one(self.db_path, sql)
         self.show_welcome_msg = settings['show_welcome_msg']
         self.show_watch_msg = settings['show_watch_msg']
+        self.show_dnd_msg = settings['show_dnd_msg']
+        self.enable_dnd = settings['enable_dnd']
         self.main_window_x = settings['main_window_x']
         self.main_window_y = settings['main_window_y']
         self.main_window_w = settings['main_window_w']
@@ -36,6 +40,8 @@ class AppSettings:
             UPDATE app_settings 
             SET show_welcome_msg=?,
                 show_watch_msg=?,
+                show_dnd_msg=?,
+                enable_dnd=?,
                 main_window_x=?,
                 main_window_y=?,
                 main_window_w=?,
@@ -48,6 +54,8 @@ class AppSettings:
 
         values = (self.show_welcome_msg,
                   self.show_watch_msg,
+                  self.show_dnd_msg,
+                  self.enable_dnd,
                   self.main_window_x,
                   self.main_window_y,
                   self.main_window_w,

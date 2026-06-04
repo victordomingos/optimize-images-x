@@ -21,6 +21,20 @@ ENTRY = "optimize_images_x/__main__.py"
 datas = [
     ("optimize_images_x/images", "optimize_images_x/images"),
 ]
+binaries = []
+hiddenimports = []
+
+# Optional drag-and-drop support. tkinterdnd2 ships native tkDnD binaries that
+# PyInstaller must bundle; collect them only if the package is installed in the
+# build environment, so the build still works without it (DnD simply absent).
+try:
+    from PyInstaller.utils.hooks import collect_all
+    dnd_datas, dnd_binaries, dnd_hiddenimports = collect_all('tkinterdnd2')
+    datas += dnd_datas
+    binaries += dnd_binaries
+    hiddenimports += dnd_hiddenimports
+except Exception:
+    pass
 
 # Platform-specific app icon. Leave None to ship with the default icon for now;
 # drop a file in and point to it later (.icns on macOS, .ico on Windows).
@@ -34,9 +48,9 @@ else:
 a = Analysis(
     [ENTRY],
     pathex=[],
-    binaries=[],
+    binaries=binaries,
     datas=datas,
-    hiddenimports=[],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],

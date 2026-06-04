@@ -28,16 +28,20 @@ require:
 This single dependency is installed automatically when you install Optimize 
 Images X and will also fetch Pillow and other dependencies.
 
+If you want to use drag-and-drop, you will also need to install the
+[TkinterDnD2](https://pypi.org/project/tkinterdnd2/) package.
+
 There are a few ways to install Optimize Images X. The simplest, if you don't
 use Python yourself, is to download a prebuilt application from the project's
 [GitHub releases](https://github.com/victordomingos/optimize-images-x/releases)
 page, when available for your system.
 
 If you have Python on your system, you can also install the most recent release
-from the PyPI repository using `pip`:
+from the PyPI repository using `pip` (the [dnd] part is optional, and only
+needed if you want to use drag-and-drop):
 
 ```
-python3 -m pip install optimize-images-x
+python3 -m pip install optimize-images-x[dnd]
 ```
 
 It can be a good idea to keep this kind of Python app isolated in its own
@@ -67,7 +71,11 @@ Python that includes it.
 ## How to use
 
 To start compressing images, just add one or more files, or a folder. The 
-process starts as soon as the files are added to the list.
+process starts as soon as the files are added to the list. 
+
+You can also drag and drop files and folders onto the application's window, 
+if you are using the binary or you have pip installed the TkinterDnD2 package 
+(it also needs to be activated in the Settings).
 
 After launching the application for the first time, make sure all settings are 
 configured as desired. The application's default settings are similar to the 
@@ -106,8 +114,11 @@ the original documentation for the command-line based Optimize Images.
 You can choose the graphical user interface theme in the `More…` tab of the 
 Settings Window. The list of available themes will vary depending on your 
 operating system, as well as Python and TK/tcl versions. Just click each one of 
-the radio buttons, and it will be appplied immediately as you click.
+the radio buttons, and it will be applied immediately as you click.
 
+There is also an option to enable or disable drag-and-drop support, in 
+'General'. This checkbox is only available if the app can find the TkinterDnD2
+package.
 
 #### Restoring default settings
 
@@ -122,7 +133,7 @@ Restoring default settings requires that the application is restarted, which is
 done automatically. So, before resetting, you should make sure you there are no 
 more tasks pending or being processed.
 
-Its worth noting that this process will also reset previous choices regarding 
+It's worth noting that this process will also reset previous choices regarding 
 confirmation dialog boxes, so they will be shown up again even if you had chosen 
 not to see them.
 
@@ -155,6 +166,7 @@ It is a good idea to use a dedicated virtual environment for building:
 python3.14 -m venv venv-build
 source venv-build/bin/activate
 pip install .
+pip install tkinterdnd2
 pip install pyinstaller
 python -m PyInstaller optimize-images-x.spec
 ```

@@ -75,6 +75,10 @@ setup(name='optimize-images-x',
           'optimize-images==2.0.0',
       ],
 
+      extras_require={
+          'dnd': ['tkinterdnd2'],
+      },
+
       entry_points={
           'console_scripts': ['optimize-images-x = optimize_images_x.__main__:main']
       },

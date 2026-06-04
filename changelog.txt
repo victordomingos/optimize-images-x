@@ -4,6 +4,7 @@ Version History:
 ================
 
 v.2.0.1 - 2026-06-??
+ * Drag-and-drop support for images and folders (requires TkinterDnD2).
  * Added a spec file for PyInstaller. Now you can build a standalone executable
    that packages all the dependencies and the application itself, using
     PyInstaller (yay!). Tested on macOS.

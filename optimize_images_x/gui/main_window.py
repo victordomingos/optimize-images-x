@@ -629,14 +629,19 @@ class App(BaseApp):
 
         try:
             with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
-                for result in executor.map(optimize, paths):
+                futures = [executor.submit(optimize, path) for path in paths]
+                for future in concurrent.futures.as_completed(futures):
+                    try:
+                        result = future.result()
+                    except Exception as ex:
+                        print('Optimization failed:', ex)
+                        continue
                     current_img = result.img
                     if result.was_optimized:
                         n_optimized_files += 1
                         weights_processed += result.orig_size
                         weights_saved += result.orig_size - result.final_size
                     self.batch_queue.put(result)
-                    time.sleep(0)  # brief yield to the UI thread
         except concurrent.futures.process.BrokenProcessPool as bppex:
             print(bppex, current_img)
 

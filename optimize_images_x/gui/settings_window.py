@@ -3,12 +3,14 @@ import sys
 import tkinter as tk
 from os import cpu_count
 from tkinter import ttk, messagebox
-
 # import Pmw
 from tkinter.colorchooser import askcolor
 
+from optimize_images_x.global_setup import WEBP_SUPPORTED
+
 try:
     import tkinterdnd2  # noqa: F401
+
     DND_AVAILABLE = True
 except ImportError:
     DND_AVAILABLE = False
@@ -66,6 +68,14 @@ class SettingsWindow(ttk.Frame):
         self.note = ttk.Notebook(self.centerframe, padding="3 20 3 3")
         self.note.bind_all("<<NotebookTabChanged>>", self._on_tab_changed)
 
+        # WebP encoding vars are created unconditionally so that saving and
+        # change-tracking keep working even when the WebP tab is not shown
+        # (e.g. on a Pillow build without WebP support).
+        self.var_webp_lossless = tk.IntVar(
+            value=int(self.task_settings.webp_lossless))
+        self.var_webp_quality = tk.IntVar(value=self.task_settings.webp_quality)
+        self.var_webp_method = tk.IntVar(value=self.task_settings.webp_method)
+
         self.tab_general = ttk.Frame(self.note, padding=10)
         self.tab_jpeg = ttk.Frame(self.note, padding=10)
         self.tab_png = ttk.Frame(self.note, padding=10)
@@ -74,16 +84,24 @@ class SettingsWindow(ttk.Frame):
         self.note.add(self.tab_general, text="General")
         self.note.add(self.tab_jpeg, text="JPEG")
         self.note.add(self.tab_png, text="PNG")
-        self.note.add(self.tab_more, text="More…")
 
         self.generate_tab_general()
         self.generate_tab_jpeg()
         self.generate_tab_png()
-        self.generate_tab_more()
 
         self.mount_tab_general()
         self.mount_tab_jpeg()
         self.mount_tab_png()
+
+        # The WebP tab is only offered when the codec is actually available.
+        if WEBP_SUPPORTED:
+            self.tab_webp = ttk.Frame(self.note, padding=10)
+            self.note.add(self.tab_webp, text="WebP")
+            self.generate_tab_webp()
+            self.mount_tab_webp()
+
+        self.note.add(self.tab_more, text="More…")
+        self.generate_tab_more()
         self.mount_tab_more()
 
     def show_main_panel(self):
@@ -104,6 +122,7 @@ class SettingsWindow(ttk.Frame):
         self.var_fast_mode = tk.IntVar(value=self.task_settings.fast_mode)
         self.var_convert_gray = tk.IntVar(value=self.task_settings.convert_grayscale)
         self.var_no_comparison = tk.IntVar(value=self.task_settings.no_comparison)
+        self.var_keep_exif = tk.IntVar(value=self.task_settings.keep_exif)
         self.var_jobs = tk.IntVar(value=self.task_settings.n_jobs)
         self.var_auto_jobs = tk.IntVar(value=self.task_settings.auto_jobs)
         self.var_enable_dnd = tk.IntVar(value=self.app_settings.enable_dnd)
@@ -163,6 +182,10 @@ class SettingsWindow(ttk.Frame):
             self.general_right,
             text="No file size comparison",
             variable=self.var_no_comparison)
+        self.chk_keep_exif = ttk.Checkbutton(
+            self.general_right,
+            text="Keep EXIF metadata",
+            variable=self.var_keep_exif)
 
         if DND_AVAILABLE:
             dnd_text = "Enable drag-and-drop"
@@ -203,11 +226,12 @@ class SettingsWindow(ttk.Frame):
         self.chk_fast_mode.grid(column=0, row=1, sticky='we')
         self.chk_convert_gray.grid(column=0, row=2, sticky='we')
         self.chk_no_comparison.grid(column=0, row=3, sticky='we')
-        self.chk_enable_dnd.grid(column=0, row=4, sticky='we')
+        self.chk_keep_exif.grid(column=0, row=4, sticky='we')
+        self.chk_enable_dnd.grid(column=0, row=5, sticky='we')
 
-        self.lbl_jobs.grid(column=0, row=5, sticky='we', pady='12 0')
-        self.spin_jobs.grid(column=0, row=6, sticky='we')
-        self.chk_auto_jobs.grid(column=0, row=7, sticky='we')
+        self.lbl_jobs.grid(column=0, row=6, sticky='we', pady='12 0')
+        self.spin_jobs.grid(column=0, row=7, sticky='we')
+        self.chk_auto_jobs.grid(column=0, row=8, sticky='we')
 
         self.general_left.grid(column=0, row=0, sticky='wens',
                                padx='5', ipady=5, ipadx=5)
@@ -226,16 +250,11 @@ class SettingsWindow(ttk.Frame):
     def generate_tab_jpeg(self):
         self.var_dynamic = tk.IntVar(value=self.task_settings.jpg_dynamic_quality)
         self.var_jpeg_quality = tk.IntVar(value=self.task_settings.jpg_quality)
-        self.var_keep_exif = tk.IntVar(value=self.task_settings.keep_exif)
 
         self.jpeg_fr1 = ttk.Frame(self.tab_jpeg)
         self.jpeg_left = ttk.Labelframe(self.jpeg_fr1,
                                         text='JPEG Quality',
                                         style='Settings.TLabelframe')
-
-        self.jpeg_right = ttk.Labelframe(self.jpeg_fr1,
-                                         text='Other options',
-                                         style='Settings.TLabelframe')
 
         self.radio_dynamic = ttk.Radiobutton(self.jpeg_left,
                                              text="Auto/Dynamic",
@@ -253,25 +272,16 @@ class SettingsWindow(ttk.Frame):
                                              increment=5,
                                              textvariable=self.var_jpeg_quality)
 
-        self.chk_keep_exif = ttk.Checkbutton(self.jpeg_right,
-                                             text="Keep EXIF",
-                                             variable=self.var_keep_exif)
-
     def mount_tab_jpeg(self):
         self.radio_dynamic.grid(column=0, row=0, sticky='we')
         self.radio_fixed.grid(column=0, row=1, sticky='we')
         self.spin_jpeg_quality.grid(column=0, row=2, sticky='we')
 
-        self.chk_keep_exif.grid(column=0, row=0, sticky='we')
-
         self.jpeg_left.grid(column=0, row=0, sticky='wens',
                             padx='5', ipady=5, ipadx=5)
-        self.jpeg_right.grid(column=1, row=0, sticky='wens',
-                             padx='5', ipady=5, ipadx=5)
 
         for col in range(0, 16):
             self.jpeg_left.columnconfigure(col, weight=1)
-            self.jpeg_right.columnconfigure(col, weight=1)
 
         self.jpeg_fr1.grid_columnconfigure(0, weight=1)
         self.jpeg_fr1.grid_columnconfigure(1, weight=1)
@@ -287,6 +297,8 @@ class SettingsWindow(ttk.Frame):
             conversion = 1
 
         self.var_conversion = tk.IntVar(value=conversion)
+        self.var_convert_target = tk.StringVar(
+            value=self.task_settings.convert_to)
         self.var_del_original = tk.IntVar(value=self.task_settings.force_delete)
         self.var_reduce_colors = tk.IntVar(value=self.task_settings.reduce_colors)
         self.var_max_colors = tk.IntVar(value=self.task_settings.max_colors)
@@ -299,7 +311,7 @@ class SettingsWindow(ttk.Frame):
 
         self.png_fr1 = ttk.Frame(self.tab_png)
         self.png_left = ttk.Labelframe(self.png_fr1,
-                                       text='Convert to JPEG',
+                                       text='PNG conversion',
                                        style='Settings.TLabelframe')
 
         self.png_right = ttk.Labelframe(self.png_fr1,
@@ -324,6 +336,22 @@ class SettingsWindow(ttk.Frame):
         self.chk_del_original = ttk.Checkbutton(self.png_left,
                                                 text="Delete original PNG file",
                                                 variable=self.var_del_original)
+
+        self.lbl_convert_target = ttk.Label(self.png_left,
+                                            text="Convert to:",
+                                            style="Panel_Body.TLabel")
+
+        self.radio_target_jpeg = ttk.Radiobutton(self.png_left,
+                                                 text="JPEG",
+                                                 value='jpeg',
+                                                 variable=self.var_convert_target)
+
+        webp_state = 'normal' if WEBP_SUPPORTED else 'disabled'
+        self.radio_target_webp = ttk.Radiobutton(self.png_left,
+                                                 text="WebP",
+                                                 value='webp',
+                                                 state=webp_state,
+                                                 variable=self.var_convert_target)
 
         self.radio_keep_colors = ttk.Radiobutton(self.png_right,
                                                  text="Auto (keep current colors)",
@@ -356,7 +384,10 @@ class SettingsWindow(ttk.Frame):
         self.radio_no_conversion.grid(column=0, row=0, sticky='we')
         self.radio_convert_big.grid(column=0, row=1, sticky='we')
         self.radio_convert_all.grid(column=0, row=2, sticky='we')
-        self.chk_del_original.grid(column=0, row=3, sticky='we', pady=12)
+        self.lbl_convert_target.grid(column=0, row=3, sticky='we', pady='8 0')
+        self.radio_target_jpeg.grid(column=0, row=4, sticky='we')
+        self.radio_target_webp.grid(column=0, row=5, sticky='we')
+        self.chk_del_original.grid(column=0, row=6, sticky='we', pady=12)
 
         self.radio_keep_colors.grid(column=0, row=0, sticky='we')
         self.radio_reduce_colors.grid(column=0, row=1, sticky='we')
@@ -378,6 +409,59 @@ class SettingsWindow(ttk.Frame):
         self.png_fr1.grid_columnconfigure(1, weight=1)
 
         self.png_fr1.pack(side='top', expand=True, fill='both')
+
+    def generate_tab_webp(self):
+        self.webp_fr1 = ttk.Frame(self.tab_webp)
+        self.webp_left = ttk.Labelframe(self.webp_fr1,
+                                        text='WebP quality',
+                                        style='Settings.TLabelframe')
+        self.webp_right = ttk.Labelframe(self.webp_fr1,
+                                         text='Other options',
+                                         style='Settings.TLabelframe')
+
+        self.radio_webp_lossy = ttk.Radiobutton(self.webp_left,
+                                                text="Lossy, quality:",
+                                                value=0,
+                                                variable=self.var_webp_lossless)
+
+        self.spin_webp_quality = ttk.Spinbox(self.webp_left,
+                                             from_=1, to=100, increment=5,
+                                             textvariable=self.var_webp_quality)
+
+        self.radio_webp_lossless = ttk.Radiobutton(self.webp_left,
+                                                   text="Lossless",
+                                                   value=1,
+                                                   variable=self.var_webp_lossless)
+
+        self.lbl_webp_method = ttk.Label(self.webp_right,
+                                         text="Compression method (0–6):",
+                                         style="Panel_Body.TLabel")
+
+        self.spin_webp_method = ttk.Spinbox(self.webp_right,
+                                            from_=0, to=6, increment=1,
+                                            textvariable=self.var_webp_method)
+
+    def mount_tab_webp(self):
+        self.radio_webp_lossy.grid(column=0, row=0, sticky='we')
+        self.spin_webp_quality.grid(column=0, row=1, sticky='we')
+        self.radio_webp_lossless.grid(column=0, row=2, sticky='we', pady='8 0')
+
+        self.lbl_webp_method.grid(column=0, row=0, sticky='we')
+        self.spin_webp_method.grid(column=0, row=1, sticky='we')
+
+        self.webp_left.grid(column=0, row=0, sticky='wens',
+                            padx='5', ipady=5, ipadx=5)
+        self.webp_right.grid(column=1, row=0, sticky='wens',
+                             padx='5', ipady=5, ipadx=5)
+
+        for col in range(0, 16):
+            self.webp_left.columnconfigure(col, weight=1)
+            self.webp_right.columnconfigure(col, weight=1)
+
+        self.webp_fr1.grid_columnconfigure(0, weight=1)
+        self.webp_fr1.grid_columnconfigure(1, weight=1)
+
+        self.webp_fr1.pack(side='top', expand=True, fill='both')
 
     def generate_tab_more(self):
         # self.var_del_original = tk.IntVar(value=self.task_settings.force_delete)
@@ -498,14 +582,21 @@ class SettingsWindow(ttk.Frame):
         # PNG settings
         self.task_settings.convert_big_to_jpg = self.var_conversion.get() != 0
         self.task_settings.convert_all_to_jpg = self.var_conversion.get() == 2
+        self.task_settings.convert_to = self.var_convert_target.get()
         self.task_settings.force_delete = self.var_del_original.get()
         self.task_settings.reduce_colors = self.var_reduce_colors.get()
         self.task_settings.max_colors = self.var_max_colors.get()
         self.task_settings.remove_transparency = self.var_remove_alpha.get()
         self.task_settings.bg_color_red = self.var_bg_color[0][0]
-        self.task_settings.bg_color_red = self.var_bg_color[0][1]
-        self.task_settings.bg_color_red = self.var_bg_color[0][2]
+        self.task_settings.bg_color_green = self.var_bg_color[0][1]
+        self.task_settings.bg_color_blue = self.var_bg_color[0][2]
         self.task_settings.bg_color_hex = self.var_bg_color[1]
+
+        # WebP settings
+        self.task_settings.webp_lossless = self.var_webp_lossless.get()
+        self.task_settings.webp_quality = self.var_webp_quality.get()
+        self.task_settings.webp_method = self.var_webp_method.get()
+
         self.task_settings.save()
 
         selected_theme = self.var_theme.get()
@@ -551,10 +642,15 @@ class SettingsWindow(ttk.Frame):
                     self.var_keep_exif,
 
                     self.var_conversion,
+                    self.var_convert_target,
                     self.var_del_original,
                     self.var_reduce_colors,
                     self.var_max_colors,
                     self.var_remove_alpha,
+
+                    self.var_webp_lossless,
+                    self.var_webp_quality,
+                    self.var_webp_method,
                     self.var_theme)
 
         for gui_var in gui_vars:

@@ -64,6 +64,14 @@ def migrate(db_path: str) -> None:
                            'show_dnd_msg', 'BOOLEAN DEFAULT TRUE')
     _add_column_if_missing(db_path, 'app_settings',
                            'enable_dnd', 'BOOLEAN DEFAULT FALSE')
+    _add_column_if_missing(db_path, 'task_settings',
+                           'convert_to', "TEXT DEFAULT 'jpeg'")
+    _add_column_if_missing(db_path, 'task_settings',
+                           'webp_quality', 'INTEGER DEFAULT 80')
+    _add_column_if_missing(db_path, 'task_settings',
+                           'webp_lossless', 'BOOLEAN DEFAULT FALSE')
+    _add_column_if_missing(db_path, 'task_settings',
+                           'webp_method', 'INTEGER DEFAULT 6')
 
 
 def initialize(db_path: str) -> None:
@@ -149,7 +157,13 @@ def initialize(db_path: str) -> None:
             bg_color_red         INTEGER   DEFAULT 255,
             bg_color_green       INTEGER   DEFAULT 255,
             bg_color_blue        INTEGER   DEFAULT 255,
-            bg_color_hex         TEXT      DEFAULT '#FFFFFF'
+            bg_color_hex         TEXT      DEFAULT '#FFFFFF',
+
+            -- Conversion target and WebP settings
+            convert_to           TEXT      DEFAULT 'jpeg',
+            webp_quality         INTEGER   DEFAULT 80,
+            webp_lossless        BOOLEAN   DEFAULT FALSE,
+            webp_method          INTEGER   DEFAULT 6
             );
 
         INSERT OR IGNORE INTO task_settings 
@@ -178,7 +192,8 @@ def initialize(db_path: str) -> None:
             max_colors,
             remove_transparency,
             bg_color_red, bg_color_green, bg_color_blue,
-            bg_color_hex
+            bg_color_hex,
+            convert_to, webp_quality, webp_lossless, webp_method
         )
         VALUES (
             1,
@@ -205,7 +220,8 @@ def initialize(db_path: str) -> None:
             255,
             0,
             255, 255, 255,
-            '#FFFFFF'
+            '#FFFFFF',
+            'jpeg', 80, 0, 6
         );
 
         CREATE TABLE IF NOT EXISTS app_stats (
@@ -276,7 +292,8 @@ def reset_task_settings(db_path: str) -> None:
             reduce_colors,
             max_colors,
             remove_transparency,
-            bg_color_red, bg_color_green, bg_color_blue
+            bg_color_red, bg_color_green, bg_color_blue,
+            convert_to, webp_quality, webp_lossless, webp_method
         )
         VALUES (
             1,
@@ -302,7 +319,8 @@ def reset_task_settings(db_path: str) -> None:
             0,
             255,
             0,
-            255, 255, 255
+            255, 255, 255,
+            'jpeg', 80, 0, 6
         );
         """
 

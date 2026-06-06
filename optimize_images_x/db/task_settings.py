@@ -35,6 +35,12 @@ class TaskSettings:
         self.bg_color_blue = 255
         self.bg_color_hex = '#FFFFFF'
 
+        # Conversion target and WebP settings
+        self.convert_to = 'jpeg'
+        self.webp_quality = 80
+        self.webp_lossless = False
+        self.webp_method = 6
+
         self.load()
 
     def load(self):
@@ -68,6 +74,12 @@ class TaskSettings:
         self.bg_color_blue = settings['bg_color_blue']
         self.bg_color_hex = settings['bg_color_hex']
 
+        # Conversion target and WebP settings
+        self.convert_to = settings['convert_to']
+        self.webp_quality = settings['webp_quality']
+        self.webp_lossless = settings['webp_lossless']
+        self.webp_method = settings['webp_method']
+
     def save(self):
         sql = """
             UPDATE task_settings 
@@ -80,11 +92,11 @@ class TaskSettings:
                 no_comparison=?,
                 n_jobs=?,
                 auto_jobs=?,
-                
+
                 jpg_dynamic_quality=?,
                 jpg_quality=?,
                 keep_exif=?,
-                
+
                 convert_big_to_jpg=?,
                 convert_all_to_jpg=?,
                 force_delete=?,
@@ -94,7 +106,11 @@ class TaskSettings:
                 bg_color_red=?,
                 bg_color_green=?,
                 bg_color_blue=?,
-                bg_color_hex=?
+                bg_color_hex=?,
+                convert_to=?,
+                webp_quality=?,
+                webp_lossless=?,
+                webp_method=?
             WHERE id=1
             """
 
@@ -122,6 +138,10 @@ class TaskSettings:
                   self.bg_color_green,
                   self.bg_color_blue,
                   self.bg_color_hex,
+                  self.convert_to,
+                  self.webp_quality,
+                  self.webp_lossless,
+                  self.webp_method,
                   )
 
         execute_with_params(self.db_path, sql, values)

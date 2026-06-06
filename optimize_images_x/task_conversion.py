@@ -34,6 +34,10 @@ def build_options(task_settings: TaskSettings) -> dict:
         grayscale=task_settings.convert_grayscale,
         ignore_size_comparison=task_settings.no_comparison,
         fast_mode=task_settings.fast_mode,
+        convert_to=task_settings.convert_to,
+        webp_quality=task_settings.webp_quality,
+        webp_lossless=bool(task_settings.webp_lossless),
+        webp_method=task_settings.webp_method,
     )
 
 

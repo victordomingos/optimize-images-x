@@ -72,7 +72,7 @@ setup(name='optimize-images-x',
                'seo-optimization website-performance gui recursive non-recursive',
 
       install_requires=[
-          'optimize-images==2.0.0',
+          'optimize-images==2.1.0',
       ],
 
       extras_require={

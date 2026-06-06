@@ -2,6 +2,13 @@ import os
 import platform
 import sys
 
+from PIL import features
+
+# WebP is only offered when the installed Pillow can actually handle it, so the
+# file dialogs and image discovery never advertise a format that would just be
+# skipped (and would emit Pillow warnings) on a build without libwebp.
+WEBP_SUPPORTED = bool(features.check('webp'))
+
 # todo: account for windows paths...
 DB_PATH = os.path.expanduser('~') + '/optimize_images_x_settings.sqlite'
 DEFAULT_PATH = os.path.expanduser('~')
@@ -20,13 +27,15 @@ CREDITS = [
 ]
 
 SUPPORTED_TYPES = [
-    ('All supported images', '.jpg .jpeg .png'),
+    ('All supported images', '.jpg .jpeg .png' + (' .webp' if WEBP_SUPPORTED else '')),
     ('JPEG Images', '.jpeg'),
     ('JPEG Images', '.jpg'),
     ('PNG Images', '.png'),
 ]
+if WEBP_SUPPORTED:
+    SUPPORTED_TYPES.append(('WebP Images', '.webp'))
 
-SUPPORTED_FORMATS = ('jpg', 'jpeg', 'png')
+SUPPORTED_FORMATS = ('jpg', 'jpeg', 'png') + (('webp',) if WEBP_SUPPORTED else ())
 
 PENDING = 0
 IN_PROGRESS = 1

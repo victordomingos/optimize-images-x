@@ -9,6 +9,17 @@ v.2.1.0 - 2026-06-??
    that packages all the dependencies and the application itself, using
     PyInstaller (yay!). Tested on macOS.
  * Added support for WEBP (using a more recent optimize-images version).
+ * Generalized format conversion: a new "Conversion" tab converts images to any
+   output format available in the Pillow build in use (typically JPEG, PNG,
+   WebP, AVIF and JPEG2000), with the target chosen from a dropdown populated
+   dynamically from the engine. The converted file is kept only when it is
+   actually smaller, unless the size comparison is disabled.
+ * Supported input and output formats are now discovered from the engine's
+   public API, reflecting the codecs actually present in the Pillow build.
+ * Added a dedicated WebP tab (quality, lossless and compression method) and
+   moved "Keep EXIF" to the General tab, as it applies to more than one format.
+ * Added tooltips to the settings controls and fixed inconsistent control fonts.
+ * Requires optimize-images >= 2.1.0 (and < 2.2.0).
  * Minor fixes and improvements.
 
 v.2.0.0 beta - 2026-06-01
@@ -30,11 +41,11 @@ v.0.9.2 beta - 2021-05-29
 v.0.9.1 beta - 2021-04-25
  * Added the ability to choose a different GUI (ttk) theme.
  * Added a new button to restore all the default settings.
- * Fixed an error that prevented the application to launch on Windows/Linux.
+ * Fixed an error that prevented the application from launching on Windows/Linux.
 
 --
 v.0.9 beta - 2021-04-23 - First public beta
- * Easy to use GUI, completely based on Python (Tkinter/ttk).
+ * Easy-to-use GUI, completely based on Python (Tkinter/ttk).
  * Implements all the features and options currently available on Optimize
    Images (the original CLI version) for batch image optimization and file size
    reduction, including:
@@ -49,7 +60,7 @@ v.0.9 beta - 2021-04-23 - First public beta
           deletion of the original PNG file)
         - ...and more.
  * Uses multiprocessing to take advantage of all available CPU cores (except the
-   "watch folder" feature, since watchdog's API only seems allow threading).
+   "watch folder" feature, since watchdog's API only seems to allow threading).
  * Automatic saving of all app and task settings, including main window size and
    position.
  * Some usage statistics available on the About window.

@@ -6,7 +6,8 @@ from tkinter import ttk, messagebox
 # import Pmw
 from tkinter.colorchooser import askcolor
 
-from optimize_images_x.global_setup import WEBP_SUPPORTED
+from optimize_images_x.global_setup import WEBP_SUPPORTED, OUTPUT_FORMATS
+from optimize_images_x.gui.extra_tk_utilities.tooltips import add_tooltip
 
 try:
     import tkinterdnd2  # noqa: F401
@@ -56,10 +57,17 @@ class SettingsWindow(ttk.Frame):
                                  foreground="grey25",
                                  font=("Helvetica Neue", 16, "bold"))
 
-        self.gui_style.configure("Panel_Body.TLabel", font=("Lucida Grande", 11))
-        self.gui_style.configure("TMenubutton", font=("Lucida Grande", 11))
-        self.gui_style.configure('Settings.TLabelframe.Label',
-                                 font=('Lucida Grande', 13, 'bold'))
+        # Use the platform's native UI font (e.g. the system font at ~13 pt on
+        # macOS) for body text and controls, instead of a hard-coded size. This
+        # keeps the window consistent with native apps like Finder, makes the
+        # captions and the option texts share one font, and avoids the previous
+        # too-small text on macOS caused by forcing an 11 pt size.
+        self.gui_style.configure("Panel_Body.TLabel", font="TkDefaultFont")
+        self.gui_style.configure("TMenubutton", font="TkDefaultFont")
+        _df = tk.font.nametofont("TkDefaultFont")
+        self.gui_style.configure(
+            'Settings.TLabelframe.Label',
+            font=(_df.actual("family"), _df.actual("size"), "bold"))
 
         self.btnFont = tk.font.Font(family="Lucida Grande", size=10)
         self.btnTxtColor = "grey22"
@@ -77,19 +85,23 @@ class SettingsWindow(ttk.Frame):
         self.var_webp_method = tk.IntVar(value=self.task_settings.webp_method)
 
         self.tab_general = ttk.Frame(self.note, padding=10)
+        self.tab_conversion = ttk.Frame(self.note, padding=10)
         self.tab_jpeg = ttk.Frame(self.note, padding=10)
         self.tab_png = ttk.Frame(self.note, padding=10)
         self.tab_more = ttk.Frame(self.note, padding=10)
 
         self.note.add(self.tab_general, text="General")
+        self.note.add(self.tab_conversion, text="Conversion")
         self.note.add(self.tab_jpeg, text="JPEG")
         self.note.add(self.tab_png, text="PNG")
 
         self.generate_tab_general()
+        self.generate_tab_conversion()
         self.generate_tab_jpeg()
         self.generate_tab_png()
 
         self.mount_tab_general()
+        self.mount_tab_conversion()
         self.mount_tab_jpeg()
         self.mount_tab_png()
 
@@ -103,6 +115,68 @@ class SettingsWindow(ttk.Frame):
         self.note.add(self.tab_more, text="More…")
         self.generate_tab_more()
         self.mount_tab_more()
+
+        self._add_tooltips()
+
+    def _add_tooltips(self):
+        """Attach short help balloons, in the spirit of the CLI help texts."""
+        tips = [
+            (self.radio_no_conversion,
+             "Keep each image in its original format; only optimize it in place."),
+            (self.radio_convert_big,
+             "Convert only big photographic PNGs (an algorithm decides whether "
+             "it is worthwhile) to the target format below."),
+            (self.radio_convert_all,
+             "Convert every image found, regardless of its source format, to "
+             "the target format below."),
+            (self.combo_convert_target,
+             "Output format for converted images. The choices depend on the "
+             "codecs available in your Pillow build."),
+            (self.chk_del_original,
+             "Delete the original file after a successful conversion (otherwise "
+             "it is kept alongside the converted one)."),
+            (self.chk_keep_exif,
+             "Preserve EXIF metadata where the format supports it "
+             "(JPEG and WebP)."),
+            (self.chk_no_comparison,
+             "Always write the result, even when it is not smaller than the "
+             "original (also forces converted files to be written)."),
+            (self.chk_fast_mode,
+             "Skip some slower steps (such as dynamic quality and palette "
+             "rebuilding) to process images faster."),
+            (self.chk_convert_gray, "Convert images to grayscale."),
+            (self.chk_recurse,
+             "Also search and process images inside subfolders."),
+            (self.radio_dynamic,
+             "Let the tool pick a JPEG quality automatically for each image."),
+            (self.radio_fixed,
+             "Use a fixed JPEG quality value for every image."),
+            (self.spin_jpeg_quality,
+             "JPEG quality (1-100). Higher means better quality and larger "
+             "files."),
+            (self.radio_reduce_colors,
+             "Reduce the PNG color palette to at most this many colors (lossy)."),
+            (self.spin_max_colors,
+             "Maximum number of colors to keep in the palette (2-255)."),
+            (self.chk_remove_alpha,
+             "Flatten any transparency over the chosen background color."),
+            (self.btn_set_bg_color,
+             "Background color used when flattening transparency."),
+        ]
+        if WEBP_SUPPORTED:
+            tips += [
+                (self.radio_webp_lossy,
+                 "Encode WebP with lossy compression at the quality below."),
+                (self.spin_webp_quality,
+                 "WebP quality for lossy mode (1-100)."),
+                (self.radio_webp_lossless,
+                 "Encode WebP losslessly (no quality loss; good for graphics)."),
+                (self.spin_webp_method,
+                 "WebP compression effort: 0 is fastest, 6 gives the smallest "
+                 "files but is slowest."),
+            ]
+        for widget, text in tips:
+            add_tooltip(widget, text)
 
     def show_main_panel(self):
         self.note.pack(side='top', expand=True, fill='both')
@@ -288,7 +362,7 @@ class SettingsWindow(ttk.Frame):
 
         self.jpeg_fr1.pack(side='top', expand=True, fill='both')
 
-    def generate_tab_png(self):
+    def generate_tab_conversion(self):
         if not self.task_settings.convert_big_to_jpg:
             conversion = 0
         elif self.task_settings.convert_all_to_jpg:
@@ -297,9 +371,58 @@ class SettingsWindow(ttk.Frame):
             conversion = 1
 
         self.var_conversion = tk.IntVar(value=conversion)
-        self.var_convert_target = tk.StringVar(
-            value=self.task_settings.convert_to)
+        # Fall back to a sensible target if the saved one is unavailable in
+        # this Pillow build (e.g. an 'avif' setting opened on a build without
+        # the AVIF codec).
+        target = self.task_settings.convert_to
+        if target not in OUTPUT_FORMATS:
+            target = 'jpeg' if 'jpeg' in OUTPUT_FORMATS \
+                else (OUTPUT_FORMATS[0] if OUTPUT_FORMATS else 'jpeg')
+        self.var_convert_target = tk.StringVar(value=target)
         self.var_del_original = tk.IntVar(value=self.task_settings.force_delete)
+
+        self.conv_fr1 = ttk.Frame(self.tab_conversion)
+        self.conv_left = ttk.Labelframe(self.conv_fr1,
+                                        text='Convert images',
+                                        style='Settings.TLabelframe')
+
+        self.radio_no_conversion = ttk.Radiobutton(
+            self.conv_left, text="No format conversion",
+            value=0, variable=self.var_conversion)
+        self.radio_convert_big = ttk.Radiobutton(
+            self.conv_left, text="Convert big PNG photos only",
+            value=1, variable=self.var_conversion)
+        self.radio_convert_all = ttk.Radiobutton(
+            self.conv_left, text="Convert all images",
+            value=2, variable=self.var_conversion)
+
+        self.lbl_convert_target = ttk.Label(
+            self.conv_left, text="Convert to:", style="Panel_Body.TLabel")
+        self.combo_convert_target = ttk.Combobox(
+            self.conv_left, state='readonly', values=list(OUTPUT_FORMATS),
+            textvariable=self.var_convert_target)
+
+        self.chk_del_original = ttk.Checkbutton(
+            self.conv_left, text="Delete original file after conversion",
+            variable=self.var_del_original)
+
+    def mount_tab_conversion(self):
+        self.radio_no_conversion.grid(column=0, row=0, sticky='we')
+        self.radio_convert_big.grid(column=0, row=1, sticky='we')
+        self.radio_convert_all.grid(column=0, row=2, sticky='we')
+        self.lbl_convert_target.grid(column=0, row=3, sticky='we', pady='8 0')
+        self.combo_convert_target.grid(column=0, row=4, sticky='we')
+        self.chk_del_original.grid(column=0, row=5, sticky='we', pady=12)
+
+        self.conv_left.grid(column=0, row=0, sticky='wens',
+                            padx='5', ipady=5, ipadx=5)
+        for col in range(0, 16):
+            self.conv_left.columnconfigure(col, weight=1)
+        self.conv_fr1.grid_columnconfigure(0, weight=1)
+        self.conv_fr1.grid_columnconfigure(1, weight=1)
+        self.conv_fr1.pack(side='top', expand=True, fill='both')
+
+    def generate_tab_png(self):
         self.var_reduce_colors = tk.IntVar(value=self.task_settings.reduce_colors)
         self.var_max_colors = tk.IntVar(value=self.task_settings.max_colors)
         self.var_remove_alpha = tk.IntVar(
@@ -310,85 +433,29 @@ class SettingsWindow(ttk.Frame):
                              self.task_settings.bg_color_hex)
 
         self.png_fr1 = ttk.Frame(self.tab_png)
-        self.png_left = ttk.Labelframe(self.png_fr1,
-                                       text='PNG conversion',
-                                       style='Settings.TLabelframe')
-
         self.png_right = ttk.Labelframe(self.png_fr1,
-                                        text='Other options',
+                                        text='Color & transparency',
                                         style='Settings.TLabelframe')
 
-        self.radio_no_conversion = ttk.Radiobutton(self.png_left,
-                                                   text="No format conversion",
-                                                   value=0,
-                                                   variable=self.var_conversion)
-
-        self.radio_convert_big = ttk.Radiobutton(self.png_left,
-                                                 text="Convert big images",
-                                                 value=1,
-                                                 variable=self.var_conversion)
-
-        self.radio_convert_all = ttk.Radiobutton(self.png_left,
-                                                 text="Convert all images",
-                                                 value=2,
-                                                 variable=self.var_conversion)
-
-        self.chk_del_original = ttk.Checkbutton(self.png_left,
-                                                text="Delete original PNG file",
-                                                variable=self.var_del_original)
-
-        self.lbl_convert_target = ttk.Label(self.png_left,
-                                            text="Convert to:",
-                                            style="Panel_Body.TLabel")
-
-        self.radio_target_jpeg = ttk.Radiobutton(self.png_left,
-                                                 text="JPEG",
-                                                 value='jpeg',
-                                                 variable=self.var_convert_target)
-
-        webp_state = 'normal' if WEBP_SUPPORTED else 'disabled'
-        self.radio_target_webp = ttk.Radiobutton(self.png_left,
-                                                 text="WebP",
-                                                 value='webp',
-                                                 state=webp_state,
-                                                 variable=self.var_convert_target)
-
-        self.radio_keep_colors = ttk.Radiobutton(self.png_right,
-                                                 text="Auto (keep current colors)",
-                                                 value=0,
-                                                 variable=self.var_reduce_colors)
-
-        self.radio_reduce_colors = ttk.Radiobutton(self.png_right,
-                                                   text="Reduce palette to max colors:",
-                                                   value=1,
-                                                   variable=self.var_reduce_colors)
-
-        self.spin_max_colors = ttk.Spinbox(self.png_right,
-                                           from_=2,
-                                           to=255,
-                                           increment=2,
-                                           textvariable=self.var_max_colors)
-
-        self.chk_remove_alpha = ttk.Checkbutton(self.png_right,
-                                                text="Remove transparency",
-                                                variable=self.var_remove_alpha)
-
-        self.btn_set_bg_color = ttk.Button(self.png_right,
-                                           text='Set background color',
-                                           command=self.choose_color)
-
+        self.radio_keep_colors = ttk.Radiobutton(
+            self.png_right, text="Auto (keep current colors)",
+            value=0, variable=self.var_reduce_colors)
+        self.radio_reduce_colors = ttk.Radiobutton(
+            self.png_right, text="Reduce palette to max colors:",
+            value=1, variable=self.var_reduce_colors)
+        self.spin_max_colors = ttk.Spinbox(
+            self.png_right, from_=2, to=255, increment=2,
+            textvariable=self.var_max_colors)
+        self.chk_remove_alpha = ttk.Checkbutton(
+            self.png_right, text="Remove transparency",
+            variable=self.var_remove_alpha)
+        self.btn_set_bg_color = ttk.Button(
+            self.png_right, text='Set background color',
+            command=self.choose_color)
         self.lbl_bg_color = tk.Label(self.png_right)
         self.lbl_bg_color['bg'] = self.var_bg_color[1]
 
     def mount_tab_png(self):
-        self.radio_no_conversion.grid(column=0, row=0, sticky='we')
-        self.radio_convert_big.grid(column=0, row=1, sticky='we')
-        self.radio_convert_all.grid(column=0, row=2, sticky='we')
-        self.lbl_convert_target.grid(column=0, row=3, sticky='we', pady='8 0')
-        self.radio_target_jpeg.grid(column=0, row=4, sticky='we')
-        self.radio_target_webp.grid(column=0, row=5, sticky='we')
-        self.chk_del_original.grid(column=0, row=6, sticky='we', pady=12)
-
         self.radio_keep_colors.grid(column=0, row=0, sticky='we')
         self.radio_reduce_colors.grid(column=0, row=1, sticky='we')
         self.spin_max_colors.grid(column=0, row=2, sticky='we')
@@ -396,18 +463,12 @@ class SettingsWindow(ttk.Frame):
         self.btn_set_bg_color.grid(column=0, row=4, sticky='we')
         self.lbl_bg_color.grid(column=0, row=5, sticky='we', padx=4)
 
-        self.png_left.grid(column=0, row=0, sticky='wens',
-                           padx='5', ipady=5, ipadx=5)
-        self.png_right.grid(column=1, row=0, sticky='wens',
+        self.png_right.grid(column=0, row=0, sticky='wens',
                             padx='5', ipady=5, ipadx=5)
-
         for col in range(0, 16):
-            self.png_left.columnconfigure(col, weight=1)
             self.png_right.columnconfigure(col, weight=1)
-
         self.png_fr1.grid_columnconfigure(0, weight=1)
         self.png_fr1.grid_columnconfigure(1, weight=1)
-
         self.png_fr1.pack(side='top', expand=True, fill='both')
 
     def generate_tab_webp(self):

@@ -2,12 +2,31 @@ import os
 import platform
 import sys
 
-from PIL import features
+# Format support is reported by the engine, reflecting the codecs actually
+# present in the Pillow build in use. We prefer the public api namespace, but
+# fall back to the formats module (some engine builds expose the helpers only
+# there) and, as a last resort, to a minimal set derived from Pillow directly,
+# so the application never fails to start because of the engine packaging.
+try:
+    from optimize_images.api import (available_input_formats,
+                                      available_output_formats)
+except ImportError:
+    try:
+        from optimize_images.formats import (available_input_formats,
+                                              available_output_formats)
+    except ImportError:
+        available_input_formats = available_output_formats = None
 
-# WebP is only offered when the installed Pillow can actually handle it, so the
-# file dialogs and image discovery never advertise a format that would just be
-# skipped (and would emit Pillow warnings) on a build without libwebp.
-WEBP_SUPPORTED = bool(features.check('webp'))
+if available_input_formats is not None:
+    INPUT_FORMATS = available_input_formats()
+    OUTPUT_FORMATS = available_output_formats()
+else:
+    from PIL import features
+    _webp = ['webp'] if features.check('webp') else []
+    INPUT_FORMATS = ['jpg', 'jpeg', 'mpo', 'png'] + _webp
+    OUTPUT_FORMATS = ['jpeg', 'png'] + _webp
+
+WEBP_SUPPORTED = 'webp' in OUTPUT_FORMATS       # kept for backwards reference
 
 # todo: account for windows paths...
 DB_PATH = os.path.expanduser('~') + '/optimize_images_x_settings.sqlite'
@@ -26,16 +45,11 @@ CREDITS = [
     "\nIcon theme from https://feathericons.com, copyrighted under the MIT licence."
 ]
 
-SUPPORTED_TYPES = [
-    ('All supported images', '.jpg .jpeg .png' + (' .webp' if WEBP_SUPPORTED else '')),
-    ('JPEG Images', '.jpeg'),
-    ('JPEG Images', '.jpg'),
-    ('PNG Images', '.png'),
-]
-if WEBP_SUPPORTED:
-    SUPPORTED_TYPES.append(('WebP Images', '.webp'))
+_ALL_EXT = ' '.join('.' + ext for ext in INPUT_FORMATS)
+SUPPORTED_TYPES = [('All supported images', _ALL_EXT)]
+SUPPORTED_TYPES += [(ext.upper() + ' Images', '.' + ext) for ext in INPUT_FORMATS]
 
-SUPPORTED_FORMATS = ('jpg', 'jpeg', 'png') + (('webp',) if WEBP_SUPPORTED else ())
+SUPPORTED_FORMATS = tuple(INPUT_FORMATS)
 
 PENDING = 0
 IN_PROGRESS = 1

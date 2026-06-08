@@ -28,4 +28,4 @@ def is_image(filepath):
         return False
     else:
         extension = os.path.splitext(filepath)[1][1:]
-        return extension.lower() in ['jpg', 'jpeg', 'png']
+        return extension.lower() in SUPPORTED_FORMATS

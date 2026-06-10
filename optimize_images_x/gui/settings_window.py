@@ -1,6 +1,7 @@
 import os
 import sys
 import tkinter as tk
+import tkinter.font
 from os import cpu_count
 from tkinter import ttk, messagebox
 # import Pmw
@@ -117,6 +118,7 @@ class SettingsWindow(ttk.Frame):
         self.mount_tab_more()
 
         self._add_tooltips()
+        self._update_enabled_states()
 
     def _add_tooltips(self):
         """Attach short help balloons, in the spirit of the CLI help texts."""
@@ -398,9 +400,13 @@ class SettingsWindow(ttk.Frame):
 
         self.lbl_convert_target = ttk.Label(
             self.conv_left, text="Convert to:", style="Panel_Body.TLabel")
+        # Not bound to the StringVar directly, so the field can be shown blank
+        # (when no conversion is selected) without losing the saved target.
         self.combo_convert_target = ttk.Combobox(
-            self.conv_left, state='readonly', values=list(OUTPUT_FORMATS),
-            textvariable=self.var_convert_target)
+            self.conv_left, state='readonly', values=list(OUTPUT_FORMATS))
+        self.combo_convert_target.set(target)
+        self.combo_convert_target.bind('<<ComboboxSelected>>',
+                                       self._on_target_selected)
 
         self.chk_del_original = ttk.Checkbutton(
             self.conv_left, text="Delete original file after conversion",
@@ -619,6 +625,48 @@ class SettingsWindow(ttk.Frame):
         window = event.widget.winfo_toplevel()
         window.destroy()
 
+    def _on_target_selected(self, *event):
+        """Mirror the conversion-target dropdown into its backing variable."""
+        self.var_convert_target.set(self.combo_convert_target.get())
+
+    def _update_enabled_states(self):
+        """Enable or disable controls that only apply in certain modes."""
+        # Conversion: a target format and "delete original" only make sense
+        # when a conversion is actually selected. Otherwise the dropdown is
+        # shown blank (without losing the saved target) and both are disabled.
+        if self.var_conversion.get() != 0:
+            self.combo_convert_target.configure(state='readonly')
+            self.combo_convert_target.set(self.var_convert_target.get())
+            self.chk_del_original.configure(state='normal')
+        else:
+            self.combo_convert_target.set('')
+            self.combo_convert_target.configure(state='disabled')
+            self.chk_del_original.configure(state='disabled')
+
+        # General: the number of simultaneous jobs is irrelevant when chosen
+        # automatically from the CPU count.
+        self.spin_jobs.configure(
+            state='disabled' if self.var_auto_jobs.get() else 'normal')
+
+        # General: max width/height only apply when downsizing.
+        size_state = 'disabled' if self.var_keep_original_size.get() else 'normal'
+        self.spin_max_w.configure(state=size_state)
+        self.spin_max_h.configure(state=size_state)
+
+        # JPEG: a fixed quality value only applies when not using dynamic mode.
+        self.spin_jpeg_quality.configure(
+            state='disabled' if self.var_dynamic.get() else 'normal')
+
+        # PNG: a maximum number of colors only applies when reducing the palette.
+        self.spin_max_colors.configure(
+            state='normal' if self.var_reduce_colors.get() else 'disabled')
+
+        # WebP: the quality only applies to lossy encoding (the tab may not
+        # exist when the codec is unavailable).
+        if hasattr(self, 'spin_webp_quality'):
+            self.spin_webp_quality.configure(
+                state='disabled' if self.var_webp_lossless.get() else 'normal')
+
     def _on_value_changed(self, *event):
         self.task_settings.keep_original_size = self.var_keep_original_size.get()
         self.task_settings.max_width = self.var_max_w.get()
@@ -674,6 +722,8 @@ class SettingsWindow(ttk.Frame):
             self.app_settings.save()
             if self.app_status.main_window is not None:
                 self.app_status.main_window.apply_dnd()
+
+        self._update_enabled_states()
 
     def reset_all_settings(self):
         msg = 'Resetting all settings will reload all default settings and the ' \

@@ -133,10 +133,12 @@ class SettingsWindow(ttk.Frame):
              "the target format below."),
             (self.combo_convert_target,
              "Output format for converted images. The choices depend on the "
-             "codecs available in your Pillow build."),
+             "codecs available in your Pillow build. Only active when a "
+             "conversion mode (big PNG photos, or all images) is selected."),
             (self.chk_del_original,
              "Delete the original file after a successful conversion (otherwise "
-             "it is kept alongside the converted one)."),
+             "it is kept alongside the converted one). Only active when a "
+             "conversion mode is selected."),
             (self.chk_keep_exif,
              "Preserve EXIF metadata where the format supports it "
              "(JPEG and WebP)."),
@@ -149,28 +151,40 @@ class SettingsWindow(ttk.Frame):
             (self.chk_convert_gray, "Convert images to grayscale."),
             (self.chk_recurse,
              "Also search and process images inside subfolders."),
+            (self.spin_max_w,
+             "Maximum width, in pixels. Only active when 'Downsize image to "
+             "fit' is selected."),
+            (self.spin_max_h,
+             "Maximum height, in pixels. Only active when 'Downsize image to "
+             "fit' is selected."),
+            (self.spin_jobs,
+             "Number of images processed in parallel. Only active when 'Auto "
+             "(based on CPU)' is unchecked."),
             (self.radio_dynamic,
              "Let the tool pick a JPEG quality automatically for each image."),
             (self.radio_fixed,
              "Use a fixed JPEG quality value for every image."),
             (self.spin_jpeg_quality,
              "JPEG quality (1-100). Higher means better quality and larger "
-             "files."),
+             "files. Only active when 'Fixed value' is selected."),
             (self.radio_reduce_colors,
              "Reduce the PNG color palette to at most this many colors (lossy)."),
             (self.spin_max_colors,
-             "Maximum number of colors to keep in the palette (2-255)."),
+             "Maximum number of colors to keep in the palette (2-255). Only "
+             "active when 'Reduce palette to max colors' is selected."),
             (self.chk_remove_alpha,
              "Flatten any transparency over the chosen background color."),
             (self.btn_set_bg_color,
-             "Background color used when flattening transparency."),
+             "Background color used when flattening transparency. Only active "
+             "when 'Remove transparency' is selected."),
         ]
         if WEBP_SUPPORTED:
             tips += [
                 (self.radio_webp_lossy,
                  "Encode WebP with lossy compression at the quality below."),
                 (self.spin_webp_quality,
-                 "WebP quality for lossy mode (1-100)."),
+                 "WebP quality for lossy mode (1-100). Only active when "
+                 "'Lossy' is selected (disabled for lossless)."),
                 (self.radio_webp_lossless,
                  "Encode WebP losslessly (no quality loss; good for graphics)."),
                 (self.spin_webp_method,
@@ -588,7 +602,10 @@ class SettingsWindow(ttk.Frame):
         self.more_fr1.pack(side='top', expand=True, fill='both')
 
     def choose_color(self):
-        self.var_bg_color = askcolor(title='Select background color')
+        color = askcolor(title='Select background color', parent=self)
+        if not color or color[0] is None:
+            return  # the user cancelled the dialog
+        self.var_bg_color = color
         self.lbl_bg_color['bg'] = self.var_bg_color[1]
         self._on_value_changed()
 
@@ -661,6 +678,10 @@ class SettingsWindow(ttk.Frame):
         self.spin_max_colors.configure(
             state='normal' if self.var_reduce_colors.get() else 'disabled')
 
+        # PNG: the background color only applies when flattening transparency.
+        self.btn_set_bg_color.configure(
+            state='normal' if self.var_remove_alpha.get() else 'disabled')
+
         # WebP: the quality only applies to lossy encoding (the tab may not
         # exist when the codec is unavailable).
         if hasattr(self, 'spin_webp_quality'):
@@ -696,10 +717,13 @@ class SettingsWindow(ttk.Frame):
         self.task_settings.reduce_colors = self.var_reduce_colors.get()
         self.task_settings.max_colors = self.var_max_colors.get()
         self.task_settings.remove_transparency = self.var_remove_alpha.get()
-        self.task_settings.bg_color_red = self.var_bg_color[0][0]
-        self.task_settings.bg_color_green = self.var_bg_color[0][1]
-        self.task_settings.bg_color_blue = self.var_bg_color[0][2]
-        self.task_settings.bg_color_hex = self.var_bg_color[1]
+        # var_bg_color is (None, None) if the color dialog was ever cancelled;
+        # only persist a real color.
+        if self.var_bg_color and self.var_bg_color[0] is not None:
+            self.task_settings.bg_color_red = self.var_bg_color[0][0]
+            self.task_settings.bg_color_green = self.var_bg_color[0][1]
+            self.task_settings.bg_color_blue = self.var_bg_color[0][2]
+            self.task_settings.bg_color_hex = self.var_bg_color[1]
 
         # WebP settings
         self.task_settings.webp_lossless = self.var_webp_lossless.get()

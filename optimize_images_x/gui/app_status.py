@@ -85,6 +85,9 @@ class AppStatus:
             if result_task.was_optimized:
                 task.status = OPTIMIZED
                 task.final_filesize = result_task.final_size
+                task.orig_format = result_task.orig_format
+                task.result_format = result_task.result_format
+                task.was_downsized = result_task.was_downsized
             else:
                 task.status = SKIPPED
             return

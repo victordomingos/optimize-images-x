@@ -10,6 +10,14 @@ class Task:
     status: int
     original_filesize: int = 0
     final_filesize: int = 0
+    orig_format: str = ''
+    result_format: str = ''
+    was_downsized: bool = False
+
+    @property
+    def was_converted(self) -> bool:
+        return bool(self.orig_format and self.result_format
+                    and self.orig_format != self.result_format)
 
     @property
     def filename(self):

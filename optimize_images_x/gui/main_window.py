@@ -12,7 +12,6 @@ from timeit import default_timer as timer
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilenames, askdirectory
 
-from PIL import Image
 from optimize_images.api import PublicTaskResult
 from optimize_images.api import optimize_single_image
 from watchdog.observers import Observer
@@ -21,6 +20,7 @@ from optimize_images_x.calcs import calc_percent_saved, get_percent_str, human
 from optimize_images_x.db.app_settings import AppSettings
 from optimize_images_x.db.app_stats import AppStats
 from optimize_images_x.db.task_settings import TaskSettings
+from optimize_images_x.file_handling import open_in_default_viewer
 from optimize_images_x.global_setup import APP_NAME, DEFAULT_PATH, OPTIMIZED, SKIPPED
 from optimize_images_x.global_setup import MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT
 from optimize_images_x.global_setup import MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT
@@ -29,6 +29,7 @@ from optimize_images_x.global_setup import resource_path
 from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
 from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.base_app import BaseApp
+from optimize_images_x.gui.image_info_window import ImageInfoWindow
 from optimize_images_x.gui.settings_window import SettingsWindow
 from optimize_images_x.search_images import is_image
 from optimize_images_x.task_conversion import build_options, resolve_path
@@ -106,6 +107,12 @@ class App(BaseApp):
 
     def apply_main_bindings(self):
         self.master.bind_all("<Mod2-q>", self.shutdown)
+        if platform.system() == 'Darwin':
+            # On aqua, 'Command' is the reliable modifier name; menu
+            # accelerator strings alone do not create working bindings.
+            self.master.bind_all("<Command-i>", self.show_info)
+        else:
+            self.master.bind_all("<Control-i>", self.show_info)
         self.master.bind("<Configure>", self.update_window_status)
 
     def bind_tree(self):
@@ -141,14 +148,37 @@ class App(BaseApp):
             Display selected image in the system's default image viewer.
         """
         filepath = self.get_selected_img_path()
-        img = Image.open(filepath)
-        img.show()
+        if not filepath:
+            return
+        open_in_default_viewer(filepath)
 
     def quicklook(self, *event):
         filepath = self.get_selected_img_path()
+        if not filepath:
+            return
         subprocess.run(['qlmanage', '-p', filepath])
 
+    def show_info(self, *event):
+        """
+            Open a window with detailed information (properties, optimization
+            results and EXIF) about the selected image.
+        """
+        filepath = self.get_selected_img_path()
+        if not filepath:
+            self.my_statusbar.set('Please select an image first.')
+            return
+        task = next((t for t in self.app_status.tasks
+                     if t.filepath == filepath), None)
+        try:
+            ImageInfoWindow.show(self.master, filepath, task)
+        except OSError as error:
+            messagebox.showerror('Image info',
+                                 f'Could not read image:\n{error}')
+
     def get_selected_img_path(self):
+        selection = self.tree.selection()
+        if selection:
+            return selection[0]
         click_coords = (self.tree.winfo_pointerx() - self.tree.winfo_rootx(),
                         self.tree.winfo_pointery() - self.tree.winfo_rooty())
         filepath = self.tree.identify('item', *click_coords)
@@ -277,6 +307,20 @@ class App(BaseApp):
             label="Watch a folder for new files…",
             command=self.select_folder_to_watch,
             accelerator="Command+Shift+F")
+        self.file_menu.add_separator()
+        self.file_menu.add_command(
+            label="Open image",
+            command=self.show_img)
+        if platform.system() == 'Darwin':
+            self.file_menu.add_command(
+                label="Quick Look Preview",
+                command=self.quicklook,
+                accelerator="Space")
+        self.file_menu.add_command(
+            label="Show image info",
+            command=self.show_info,
+            accelerator="Command+I" if platform.system() == 'Darwin'
+            else "Control+I")
 
         # self.menuVis = tk.Menu(self.menu)
         # self.menu.add_cascade(label="View", menu=self.menuVis)

@@ -1,5 +1,3 @@
-
-
 Version History:
 ================
 
@@ -19,6 +17,17 @@ v.2.1.0 - 2026-06-??
  * Added a dedicated WebP tab (quality, lossless and compression method) and
    moved "Keep EXIF" to the General tab, as it applies to more than one format.
  * Added tooltips to the settings controls and fixed inconsistent control fonts.
+ * New image info window: select an image and press Cmd-I (Ctrl-I on other
+   systems), or use the File menu, to open a non-modal window with the image's
+   properties, the optimization results (size before and after, and space
+   saved) and its EXIF metadata, grouped into Image, Camera and GPS sections
+   with values shown in a readable form (e.g. f/8, 1/250 s, 50 mm). It also
+   reports the colour profile description and the file's creation and
+   modification dates. One window per image.
+ * Opening an image now hands the real file to the system's default viewer
+   instead of a temporary copy, so the original file is shown. Added File menu
+   entries to open the image, to Quick Look it (macOS) and to show image info,
+   plus a Finder-style Cmd-Down shortcut on macOS as an alias of Enter.
  * Requires optimize-images >= 2.1.0 (and < 2.2.0).
  * Minor fixes and improvements.
 

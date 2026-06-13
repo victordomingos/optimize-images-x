@@ -88,6 +88,21 @@ In simple terms, always make sure you have configured Optimize Images X as you
 want it, but if you just want to use the same settings from last time, just add 
 images.
 
+## Viewing images and their information
+
+To open the selected image in the system's default viewer, press `Enter` or 
+double-click it in the list (on macOS you can also press `Cmd`+`Down`). On 
+macOS, pressing the spacebar shows a Quick Look preview instead.
+
+To inspect an image in detail, select it and press `Cmd`+`I` (`Ctrl`+`I` on 
+other systems), or use the corresponding entry in the File menu. This opens an 
+image info window showing the image's properties, the optimization results 
+(size before and after, and the space saved) and its EXIF metadata, grouped 
+into Image, Camera and GPS sections. Known values are shown in a readable form 
+(for example `f/8`, `1/250 s` or `50 mm`), and the colour profile description 
+and the file's creation and modification dates are included. The window is 
+non-modal and you can open one per image, so you can compare several at once.
+
 ## Preferences
 
 If you have used Optimize Images before, you probably already know what options 

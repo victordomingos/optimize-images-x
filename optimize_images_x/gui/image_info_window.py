@@ -95,7 +95,7 @@ class ImageInfoWindow:
         self.muted_color = '#777777'
 
         self._mount_header()
-        self._mount_tabs()
+        self._build_body()
         self.window.update_idletasks()
         self.window.minsize(self.window.winfo_reqwidth(),
                             self.window.winfo_reqheight())
@@ -177,24 +177,24 @@ class ImageInfoWindow:
             .pack(anchor='w', pady=(3, 0))
         return frame
 
-    # -- Tabs -----------------------------------------------------------
-    def _mount_tabs(self):
-        notebook = ttk.Notebook(self.window)
-        notebook.pack(fill='both', expand=True, padx=12, pady=(6, 12))
-        notebook.add(self._make_details_tab(notebook), text='Details')
-        notebook.add(self._make_exif_tab(notebook), text='EXIF')
+    # -- Body (single view; nothing is unmapped) ----------------------
+    def _build_body(self):
+        body = ttk.Frame(self.window, padding=(12, 6, 12, 12))
+        body.pack(fill='both', expand=True)
 
-    def _make_details_tab(self, parent) -> ttk.Frame:
-        tab = ttk.Frame(parent, padding=12)
+        details = ttk.Frame(body)
+        details.pack(fill='x', anchor='w')
         row = 0
         if self._is_optimized():
-            row = self._add_section(tab, row, 'Optimization',
+            row = self._add_section(details, row, 'Optimization',
                                     self._optimization_rows())
-        self._add_section(tab, row, 'Image properties', self.info.properties)
-        tab.columnconfigure(1, weight=1)
-        return tab
+        self._add_section(details, row, 'Image properties',
+                          self.info.properties, columns=2)
+        details.columnconfigure(5, weight=1)   # absorb slack; keep left-aligned
 
-    def _optimization_rows(self) -> Dict[str, str]:
+        self._build_exif(body)
+
+    def _optimization_rows(self):
         rows = {
             'Original size': human(self.task.original_filesize),
             'Final size': human(self.task.final_filesize),
@@ -204,48 +204,64 @@ class ImageInfoWindow:
         if self.task.was_downsized:
             rows['Downsized'] = 'yes'
         if self.task.was_converted:
-            rows['Converted'] = f'{self.task.orig_format} → ' \
+            rows['Converted'] = f'{self.task.orig_format} \u2192 ' \
                                 f'{self.task.result_format}'
         return rows
 
-    def _add_section(self, parent, row: int, title: str,
-                     rows: Dict[str, str]) -> int:
+    def _add_section(self, parent, row, title, rows, columns=1):
         ttk.Label(parent, text=title, font=self.bold_font) \
-            .grid(row=row, column=0, columnspan=2, sticky='w',
+            .grid(row=row, column=0, columnspan=6, sticky='w',
                   pady=(0 if row == 0 else 12, 4))
         row += 1
-        for label, value in rows.items():
-            ttk.Label(parent, text=label, foreground=self.muted_color) \
-                .grid(row=row, column=0, sticky='w', padx=(0, 18), pady=1)
-            ttk.Label(parent, text=value).grid(row=row, column=1,
-                                               sticky='w', pady=1)
-            row += 1
-        return row
+        items = list(rows.items())
+        # Flow into two balanced columns (column-major) when asked and worth
+        # it, so tall sections use the empty horizontal space instead of
+        # stretching the window downwards.
+        if columns == 2 and len(items) > 4:
+            parent.columnconfigure(2, minsize=28)   # gap between the columns
+            half = (len(items) + 1) // 2
+            blocks = (items[:half], items[half:])
+            for line in range(half):
+                for block_index, block in enumerate(blocks):
+                    if line >= len(block):
+                        continue
+                    label, value = block[line]
+                    base = block_index * 3   # left -> 0/1, right -> 3/4
+                    self._kv_row(parent, row + line, base, label, value)
+            return row + half
+        for line, (label, value) in enumerate(items):
+            self._kv_row(parent, row + line, 0, label, value)
+        return row + len(items)
 
-    def _make_exif_tab(self, parent) -> ttk.Frame:
-        tab = ttk.Frame(parent, padding=(0, 6, 0, 0))
+    def _kv_row(self, parent, row, base_column, label, value):
+        ttk.Label(parent, text=label, foreground=self.muted_color) \
+            .grid(row=row, column=base_column, sticky='w', padx=(0, 18),
+                  pady=1)
+        ttk.Label(parent, text=value) \
+            .grid(row=row, column=base_column + 1, sticky='w', pady=1)
+
+    def _build_exif(self, parent):
+        ttk.Label(parent, text='EXIF', font=self.bold_font) \
+            .pack(anchor='w', pady=(12, 4))
         if not self.info.exif:
-            ttk.Label(tab, text='This image has no EXIF metadata.',
-                      foreground=self.muted_color, padding=12).pack()
-            return tab
+            ttk.Label(parent, text='This image has no EXIF metadata.',
+                      foreground=self.muted_color).pack(anchor='w')
+            return
 
-        tree = ttk.Treeview(tab, columns=('value',), show='tree headings',
-                            height=12)
+        holder = ttk.Frame(parent)
+        holder.pack(fill='both', expand=True)
+        tree = ttk.Treeview(holder, columns=('value',),
+                            show='tree headings', height=9)
         tree.heading('#0', text='Tag', anchor='w')
         tree.heading('value', text='Value', anchor='w')
         tree.column('#0', width=200, stretch=False)
         tree.column('value', width=260)
-
         for section_title, tags in self.info.exif.items():
-            section_id = tree.insert('', 'end', text=section_title,
-                                     open=True)
+            section_id = tree.insert('', 'end', text=section_title, open=True)
             for tag_name, value in tags.items():
-                tree.insert(section_id, 'end', text=tag_name,
-                            values=(value,))
-
-        scrollbar = ttk.Scrollbar(tab, orient='vertical',
+                tree.insert(section_id, 'end', text=tag_name, values=(value,))
+        scrollbar = ttk.Scrollbar(holder, orient='vertical',
                                   command=tree.yview)
         tree.configure(yscrollcommand=scrollbar.set)
         tree.pack(side='left', fill='both', expand=True)
         scrollbar.pack(side='right', fill='y')
-        return tab

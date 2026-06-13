@@ -75,7 +75,10 @@ class SettingsWindow(ttk.Frame):
 
     def generate_main_panel(self):
         self.note = ttk.Notebook(self.centerframe, padding="3 20 3 3")
-        self.note.bind_all("<<NotebookTabChanged>>", self._on_tab_changed)
+        # Bind on this notebook only. bind_all would fire this handler for
+        # every notebook in the application (e.g. the image info window),
+        # resizing foreign widgets and degrading their tab switching.
+        self.note.bind("<<NotebookTabChanged>>", self._on_tab_changed)
 
         # WebP encoding vars are created unconditionally so that saving and
         # change-tracking keep working even when the WebP tab is not shown
@@ -610,6 +613,8 @@ class SettingsWindow(ttk.Frame):
         self._on_value_changed()
 
     def _on_tab_changed(self, event):
+        if event.widget is not self.note:
+            return  # not our notebook (defensive; see binding above)
         w = event.widget  # get the current widget
         w.update_idletasks()
 

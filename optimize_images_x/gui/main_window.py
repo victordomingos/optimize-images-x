@@ -121,6 +121,8 @@ class App(BaseApp):
         self.tree.bind('<Double-1>', self.show_img)
         if platform.system() == 'Darwin':
             self.tree.bind('<space>', self.quicklook)
+            # Finder-style "open" shortcut, as an alias of Return.
+            self.tree.bind('<Command-Down>', self.show_img)
 
     def shutdown(self, event):
         if self.observer is not None:

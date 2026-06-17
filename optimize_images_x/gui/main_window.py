@@ -1,9 +1,9 @@
 import concurrent.futures
+import math
 import os
 import platform
 import subprocess
 import threading
-import time
 import tkinter as tk
 import webbrowser
 from functools import partial
@@ -14,7 +14,6 @@ from tkinter.filedialog import askopenfilenames, askdirectory
 
 from optimize_images.api import PublicTaskResult
 from optimize_images.api import optimize_single_image
-from watchdog.observers import Observer
 
 from optimize_images_x.calcs import calc_percent_saved, get_percent_str, human
 from optimize_images_x.db.app_settings import AppSettings
@@ -29,15 +28,18 @@ from optimize_images_x.global_setup import resource_path
 from optimize_images_x.gui.about_window import AboutWindow, ThanksWindow
 from optimize_images_x.gui.app_status import AppStatus
 from optimize_images_x.gui.base_app import BaseApp
+from optimize_images_x.gui.extra_tk_utilities.tooltips import add_tooltip
 from optimize_images_x.gui.image_info_window import ImageInfoWindow
 from optimize_images_x.gui.settings_window import SettingsWindow
 from optimize_images_x.search_images import is_image
 from optimize_images_x.task_conversion import build_options, resolve_path
 from optimize_images_x.task_conversion import get_task_icon
 from optimize_images_x.watch import OptimizeImageEventHandler
+from watchdog.observers import Observer
 
 try:
     from tkinterdnd2 import DND_FILES
+
     DND_AVAILABLE = True
 except ImportError:
     DND_FILES = None
@@ -265,6 +267,13 @@ class App(BaseApp):
         self.btn_clear_queue.grid(column=2, row=0, ipady=4)
         self.btn_watch_folder.grid(row=0, column=14, ipady=4)
         self.btn_settings.grid(row=0, column=15, ipady=4)  # last button
+
+        add_tooltip(self.btn_add_files, 'Add image files to the list')
+        add_tooltip(self.btn_add_folder, 'Add all images from a folder')
+        add_tooltip(self.btn_clear_queue, 'Remove every item from the list')
+        add_tooltip(self.btn_watch_folder,
+                    'Watch a folder and optimize new images automatically')
+        add_tooltip(self.btn_settings, 'Open settings')
         # self.dicas.bind(self.btn_settings,
         #                'Mostrar/ocultar a janela de remessas. (⌘3)')
 
@@ -370,6 +379,7 @@ class App(BaseApp):
             self.tree.insert("", index="end", iid=task.filepath, values=values)
 
         self.alternate_colors(self.tree)
+        self.update_drop_hint()
         if self.app_status.processed_tasks_count:
             self.after_idle(self.update_report)
         else:
@@ -548,11 +558,165 @@ class App(BaseApp):
         if self.app_settings.enable_dnd:
             self.master.drop_target_register(DND_FILES)
             self.master.dnd_bind('<<Drop>>', self.handle_drop)
+            self.master.dnd_bind('<<DropEnter>>', self._on_drag_enter)
+            self.master.dnd_bind('<<DropLeave>>', self._on_drag_leave)
         else:
             try:
                 self.master.drop_target_unregister()
             except Exception:
                 pass
+            self._end_drag_feedback()
+
+        self.update_drop_hint()
+
+    # ---- Empty-state drag-and-drop hint -------------------------------
+    def _ensure_drop_hint(self):
+        if getattr(self, 'drop_hint', None) is None:
+            self.drop_hint = tk.Canvas(self.leftframe, width=340, height=200,
+                                       highlightthickness=0, borderwidth=0,
+                                       takefocus=0)
+
+    def update_drop_hint(self, *event):
+        """Show a centered hint over the empty list while drag-and-drop is
+        available and enabled; hide it once the list has items or the feature
+        is turned off."""
+        self._ensure_drop_hint()
+        show = (DND_AVAILABLE and self.app_settings.enable_dnd
+                and not self.tree.get_children())
+        if show:
+            self._draw_drop_hint()
+            self.drop_hint.place(in_=self.tree, relx=0.5, rely=0.5,
+                                 anchor='center')
+            self._raise_widget(self.drop_hint)
+        else:
+            self.drop_hint.place_forget()
+
+    def _drop_hint_colors(self):
+        """Background and muted foreground for the hint.
+
+        On aqua, use dynamic system colours that adapt to light/dark on their
+        own (resolved at draw time, and redrawn on appearance changes); other
+        themes fall back to fixed colours chosen from the dark state.
+        """
+        if self.style.theme_use() == 'aqua':
+            return 'systemTextBackgroundColor', 'systemPlaceholderTextColor'
+        if self._is_dark():
+            return '#1e1e1e', '#8a8f98'
+        return '#ffffff', '#a2a8b0'
+
+    @staticmethod
+    def _rounded_rect(canvas, x1, y1, x2, y2, r, **kwargs):
+        """Draw a rounded rectangle outline as a smoothed (optionally dashed)
+        line, since tk.Canvas has no native rounded-rectangle primitive."""
+        points = [x1 + r, y1, x2 - r, y1, x2, y1, x2, y1 + r, x2, y2 - r,
+                  x2, y2, x2 - r, y2, x1 + r, y2, x1, y2, x1, y2 - r,
+                  x1, y1 + r, x1, y1, x1 + r, y1]
+        return canvas.create_line(points, smooth=True, **kwargs)
+
+    def _draw_drop_hint(self):
+        canvas = self.drop_hint
+        canvas.delete('all')
+        bg, fg = self._drop_hint_colors()
+        canvas.configure(background=bg)
+        w, h = int(canvas['width']), int(canvas['height'])
+        cx = w // 2
+
+        # Subtle dashed rounded border marking the droppable area.
+        self._rounded_rect(canvas, 8, 8, w - 8, h - 8, 18, fill=fg,
+                           dash=(3, 4), width=1, capstyle='round')
+        # Line-art icon: an arrow dropping into an open tray.
+        canvas.create_line(cx, 44, cx, 92, fill=fg, width=2, capstyle='round')
+        canvas.create_line(cx - 11, 80, cx, 92, cx + 11, 80, fill=fg, width=2,
+                           capstyle='round', joinstyle='round')
+        canvas.create_line(cx - 30, 98, cx - 30, 116, cx + 30, 116, cx + 30,
+                           98, fill=fg, width=2, capstyle='round',
+                           joinstyle='round')
+        # Two lines of guidance.
+        canvas.create_text(cx, h - 56,
+                           text='Drag and drop images or folders here',
+                           fill=fg, font=self.statusFont)
+        canvas.create_text(cx, h - 33,
+                           text='or use Add files/Add folder above',
+                           fill=fg, font=self.btnFont)
+
+    def refresh_appearance(self):
+        super().refresh_appearance()
+        self.update_drop_hint()
+
+    # ---- Drag feedback (active drop highlight) -------------------------
+    _RING_THICKNESS = 3
+
+    def _ensure_drag_ring(self):
+        if getattr(self, '_drag_ring', None) is None:
+            self._drag_ring = [tk.Frame(self.leftframe, borderwidth=0,
+                                        highlightthickness=0)
+                               for _ in range(4)]
+            self._drag_anim_id = None
+            self._drag_phase = 0
+
+    def _on_drag_enter(self, event=None):
+        """Pointer with a payload entered the window: show active feedback."""
+        self._start_drag_feedback()
+        return getattr(event, 'action', None)
+
+    def _on_drag_leave(self, event=None):
+        """Pointer left without dropping: remove the feedback."""
+        self._end_drag_feedback()
+
+    def _start_drag_feedback(self):
+        if not (DND_AVAILABLE and self.app_settings.enable_dnd):
+            return
+        self._ensure_drag_ring()
+        t = self._RING_THICKNESS
+        top, bottom, left, right = self._drag_ring
+        top.place(in_=self.tree, relx=0, rely=0, relwidth=1, height=t,
+                  anchor='nw')
+        bottom.place(in_=self.tree, relx=0, rely=1.0, relwidth=1, height=t,
+                     anchor='sw')
+        left.place(in_=self.tree, relx=0, rely=0, relheight=1, width=t,
+                   anchor='nw')
+        right.place(in_=self.tree, relx=1.0, rely=0, relheight=1, width=t,
+                    anchor='ne')
+        for strip in self._drag_ring:
+            self._raise_widget(strip)
+        if self._drag_anim_id is None:
+            self._pulse_drag_ring()
+
+    def _end_drag_feedback(self, *event):
+        if getattr(self, '_drag_anim_id', None) is not None:
+            try:
+                self.after_cancel(self._drag_anim_id)
+            except Exception:
+                pass
+            self._drag_anim_id = None
+        for strip in getattr(self, '_drag_ring', []) or []:
+            strip.place_forget()
+
+    def _pulse_drag_ring(self):
+        """Animate the ring with a gentle blue glow while a drag is active."""
+        self._drag_phase = (self._drag_phase + 1) % 24
+        t = (math.sin(self._drag_phase / 24 * 2 * math.pi) + 1) / 2  # 0..1
+        color = self._mix_hex('#2563eb', '#7db0ff', t)
+        for strip in self._drag_ring:
+            strip.configure(background=color)
+        self._drag_anim_id = self.after(60, self._pulse_drag_ring)
+
+    @staticmethod
+    def _mix_hex(c1, c2, t):
+        a = tuple(int(c1[i:i + 2], 16) for i in (1, 3, 5))
+        b = tuple(int(c2[i:i + 2], 16) for i in (1, 3, 5))
+        m = tuple(round(a[i] + (b[i] - a[i]) * t) for i in range(3))
+        return f'#{m[0]:02x}{m[1]:02x}{m[2]:02x}'
+
+    @staticmethod
+    def _raise_widget(widget):
+        """Raise a widget in the window stacking order.
+
+        Needed because tk.Canvas binds both ``lift`` and ``tkraise`` to its
+        item-level ``tag_raise``, which fails when called with no item; this
+        invokes the actual window-stacking 'raise' command instead.
+        """
+        widget.tk.call('raise', widget._w)
 
     @staticmethod
     def _parse_dropped_paths(data):
@@ -578,6 +742,7 @@ class App(BaseApp):
         return paths
 
     def handle_drop(self, event):
+        self._end_drag_feedback()
         if not (DND_AVAILABLE and self.app_settings.enable_dnd):
             return
 
@@ -658,8 +823,8 @@ class App(BaseApp):
         self.batch_n_tasks = n_tasks
 
         worker = threading.Thread(target=self._run_batch,
-                                 args=(opts, paths),
-                                 daemon=True)
+                                  args=(opts, paths),
+                                  daemon=True)
         worker.start()
         self.after(50, self._drain_batch_queue)
 

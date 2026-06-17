@@ -1,4 +1,3 @@
-import platform
 import tkinter as tk
 import tkinter.font
 from functools import lru_cache
@@ -119,7 +118,11 @@ class BaseApp(ttk.Frame):
     def _fg_color(self):
         if self.style.theme_use() != 'aqua':
             return 'grey22'
-        return '#ffffff' if self._is_dark() else '#1d1d1f'
+        # On aqua, use the dynamic system label color so the text (Treeview
+        # body AND headings) follows light/dark automatically, instead of a
+        # hard-coded colour that the native heading element tends to ignore
+        # and that does not refresh reliably on an appearance change.
+        return 'systemTextColor'
 
     def configure_tree_style(self):
         self.style.configure('Treeview',

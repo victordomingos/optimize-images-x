@@ -622,7 +622,7 @@ class App(BaseApp):
         cx = w // 2
 
         # Subtle dashed rounded border marking the droppable area.
-        self._rounded_rect(canvas, 8, 8, w - 8, h - 8, 18, fill=fg,
+        self._rounded_rect(canvas, 8, 8, w - 8, h - 8, 28, fill=fg,
                            dash=(3, 4), width=1, capstyle='round')
         # Line-art icon: an arrow dropping into an open tray.
         canvas.create_line(cx, 44, cx, 92, fill=fg, width=2, capstyle='round')

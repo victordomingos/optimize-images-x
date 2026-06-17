@@ -1,3 +1,6 @@
+import platform
+import subprocess
+import time
 import tkinter as tk
 import tkinter.font
 from functools import lru_cache
@@ -109,6 +112,34 @@ class BaseApp(ttk.Frame):
     def _is_dark(self):
         if self.style.theme_use() != 'aqua':
             return False
+        # Cache briefly: this is queried often (styling, the 1s appearance
+        # tick, the drop hint), but the underlying check can spawn a process.
+        now = time.monotonic()
+        if now - getattr(self, '_dark_cache_t', 0.0) < 0.5:
+            return self._dark_cache
+        self._dark_cache = self._detect_dark()
+        self._dark_cache_t = now
+        return self._dark_cache
+
+    def _detect_dark(self):
+        """Detect macOS dark mode authoritatively.
+
+        ``defaults read -g AppleInterfaceStyle`` returns 'Dark' in dark mode
+        and fails (no such key) in light mode. This is reliable across Tk
+        versions, unlike reading 'systemWindowBackgroundColor', which can
+        resolve to a stale value and make the appearance watcher miss a
+        light/dark switch. The colour read is kept only as a fallback.
+        """
+        if platform.system() == 'Darwin':
+            try:
+                result = subprocess.run(
+                    ['defaults', 'read', '-g', 'AppleInterfaceStyle'],
+                    capture_output=True, text=True, timeout=1)
+                if result.returncode == 0:
+                    return result.stdout.strip() == 'Dark'
+                return False
+            except Exception:
+                pass
         try:
             rgb = self.winfo_rgb('systemWindowBackgroundColor')
             return sum(rgb) / 3 < 32768

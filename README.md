@@ -113,15 +113,20 @@ the original documentation for the command-line based Optimize Images.
 ### General preferences
 ![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_general.png)
 
+### Format conversion preferences
+![Optimize Images X - Preferences Window: Conversion](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_settings-conversion.png)
+
 ### JPEG specific preferences
-![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_jpeg.png)
+![Optimize Images X - Preferences Window: JPEG](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_jpeg.png)
 
 ### PNG specific preferences
-![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_png.png)
+![Optimize Images X - Preferences Window: PNG](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_png.png)
 
+### WEBP specific preferences
+![Optimize Images X - Preferences Window: WEBP](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_settings-webp.png)
 
 ### More options
-![Optimize Images X - Preferences Window: General](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_more.png)
+![Optimize Images X - Preferences Window: More options](https://github.com/victordomingos/optimize-images-x/raw/main/screenshots/optimize-images-x_prefs_more.png)
 
 
 #### User interface options

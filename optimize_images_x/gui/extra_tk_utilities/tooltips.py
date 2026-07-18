@@ -56,6 +56,10 @@ class Tooltip:
                 pass
             self._tip = None
 
+    def set_text(self, text):
+        """Update the tooltip text."""
+        self.text = text
+
 
 def add_tooltip(widget, text):
     """Convenience helper that returns the created Tooltip."""

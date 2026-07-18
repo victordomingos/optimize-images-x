@@ -1,12 +1,12 @@
 import os
 import sys
 import tkinter as tk
-import tkinter.font
 from os import cpu_count
 from tkinter import ttk, messagebox
 # import Pmw
 from tkinter.colorchooser import askcolor
 
+import optimize_images_x.i18n as i18n
 from optimize_images_x.global_setup import WEBP_SUPPORTED, OUTPUT_FORMATS
 from optimize_images_x.gui.extra_tk_utilities.tooltips import add_tooltip
 
@@ -19,16 +19,21 @@ except ImportError:
 
 
 class SettingsWindow(ttk.Frame):
-    def __init__(self, master, app_status, app_settings, task_settings, **kwargs):
+    def __init__(self, master, app_status, app_settings, task_settings, main_window=None, **kwargs):
         super().__init__(master, **kwargs)
         self.master = master
         self.app_status = app_status
         self.app_settings = app_settings
         self.task_settings = task_settings
+        self.main_window = main_window
         self.gui_style = ttk.Style()
 
         self.master.bind("<Command-w>", self._on_btn_close)
         self.master.focus()
+
+        # Apply saved language
+        saved_lang = getattr(self.app_settings, 'language', None) or 'en'
+        i18n.change_language(saved_lang)
 
         self.configure_frames_and_styles()
         self.generate_main_panel()
@@ -94,8 +99,8 @@ class SettingsWindow(ttk.Frame):
         self.tab_png = ttk.Frame(self.note, padding=10)
         self.tab_more = ttk.Frame(self.note, padding=10)
 
-        self.note.add(self.tab_general, text="General")
-        self.note.add(self.tab_conversion, text="Conversion")
+        self.note.add(self.tab_general, text=i18n._("General"))
+        self.note.add(self.tab_conversion, text=i18n._("Conversion"))
         self.note.add(self.tab_jpeg, text="JPEG")
         self.note.add(self.tab_png, text="PNG")
 
@@ -116,7 +121,7 @@ class SettingsWindow(ttk.Frame):
             self.generate_tab_webp()
             self.mount_tab_webp()
 
-        self.note.add(self.tab_more, text="More…")
+        self.note.add(self.tab_more, text=i18n._("More…"))
         self.generate_tab_more()
         self.mount_tab_more()
 
@@ -222,23 +227,23 @@ class SettingsWindow(ttk.Frame):
 
         self.general_fr1 = ttk.Frame(self.tab_general)
         self.general_left = ttk.Labelframe(self.general_fr1,
-                                           text='Image size reduction',
+                                           text=i18n._('Image size reduction'),
                                            style='Settings.TLabelframe')
 
         self.general_right = ttk.Labelframe(self.general_fr1,
-                                            text='Global options',
+                                            text=i18n._('Global options'),
                                             style='Settings.TLabelframe')
 
         self.radio_keep_orig_size = ttk.Radiobutton(self.general_left,
-                                                    text="Keep original size",
+                                                    text=i18n._("Keep original size"),
                                                     value=1,
                                                     variable=self.var_keep_original_size)
         self.radio_downsize_img = ttk.Radiobutton(self.general_left,
-                                                  text="Downsize image to fit:",
+                                                  text=i18n._("Downsize image to fit:"),
                                                   value=0,
                                                   variable=self.var_keep_original_size)
 
-        self.lbl_max_w = ttk.Label(self.general_left, text="Max width:",
+        self.lbl_max_w = ttk.Label(self.general_left, text=i18n._("Max width:"),
                                    style="Panel_Body.TLabel")
 
         self.spin_max_w = ttk.Spinbox(self.general_left,
@@ -246,11 +251,11 @@ class SettingsWindow(ttk.Frame):
                                       textvariable=self.var_max_w)
 
         self.lbl_max_h = ttk.Label(self.general_left,
-                                   text="Max height:",
+                                   text=i18n._("Max height:"),
                                    style="Panel_Body.TLabel")
 
         self.label2 = ttk.Label(self.general_right,
-                                text="label2",
+                                text=i18n._("label2"),
                                 style="Panel_Body.TLabel")
 
         self.spin_max_h = ttk.Spinbox(self.general_left,
@@ -261,30 +266,30 @@ class SettingsWindow(ttk.Frame):
 
         self.chk_recurse = ttk.Checkbutton(
             self.general_right,
-            text="Recurse through subfolders",
+            text=i18n._("Recurse through subfolders"),
             variable=self.var_recurse)
         self.chk_fast_mode = ttk.Checkbutton(
             self.general_right,
-            text="Fast mode",
+            text=i18n._("Fast mode"),
             variable=self.var_fast_mode)
         self.chk_convert_gray = ttk.Checkbutton(
             self.general_right,
-            text="Convert to grayscale",
+            text=i18n._("Convert to grayscale"),
             variable=self.var_convert_gray)
         self.chk_no_comparison = ttk.Checkbutton(
             self.general_right,
-            text="No file size comparison",
+            text=i18n._("No file size comparison"),
             variable=self.var_no_comparison)
         self.chk_keep_exif = ttk.Checkbutton(
             self.general_right,
-            text="Keep EXIF metadata",
+            text=i18n._("Keep EXIF metadata"),
             variable=self.var_keep_exif)
 
         if DND_AVAILABLE:
-            dnd_text = "Enable drag-and-drop"
+            dnd_text = i18n._("Enable drag-and-drop")
             dnd_state = "normal"
         else:
-            dnd_text = "Enable drag-and-drop (requires tkinterdnd2)"
+            dnd_text = i18n._("Enable drag-and-drop (requires tkinterdnd2)")
             dnd_state = "disabled"
         self.chk_enable_dnd = ttk.Checkbutton(
             self.general_right,
@@ -293,7 +298,7 @@ class SettingsWindow(ttk.Frame):
             variable=self.var_enable_dnd)
 
         self.lbl_jobs = ttk.Label(self.general_right,
-                                  text="Simultaneous jobs:",
+                                  text=i18n._("Simultaneous jobs:"),
                                   style="Panel_Body.TLabel")
         self.spin_jobs = ttk.Spinbox(self.general_right,
                                      from_=1,
@@ -302,7 +307,7 @@ class SettingsWindow(ttk.Frame):
 
         self.chk_auto_jobs = ttk.Checkbutton(
             self.general_right,
-            text="Auto (based on CPU)",
+            text=i18n._("Auto (based on CPU)"),
             variable=self.var_auto_jobs)
 
     def mount_tab_general(self):
@@ -346,16 +351,16 @@ class SettingsWindow(ttk.Frame):
 
         self.jpeg_fr1 = ttk.Frame(self.tab_jpeg)
         self.jpeg_left = ttk.Labelframe(self.jpeg_fr1,
-                                        text='JPEG Quality',
+                                        text=i18n._('JPEG Quality'),
                                         style='Settings.TLabelframe')
 
         self.radio_dynamic = ttk.Radiobutton(self.jpeg_left,
-                                             text="Auto/Dynamic",
+                                             text=i18n._("Auto/Dynamic"),
                                              value=1,
                                              variable=self.var_dynamic)
 
         self.radio_fixed = ttk.Radiobutton(self.jpeg_left,
-                                           text="Fixed value:",
+                                           text=i18n._("Fixed value:"),
                                            value=0,
                                            variable=self.var_dynamic)
 
@@ -402,21 +407,21 @@ class SettingsWindow(ttk.Frame):
 
         self.conv_fr1 = ttk.Frame(self.tab_conversion)
         self.conv_left = ttk.Labelframe(self.conv_fr1,
-                                        text='Convert images',
+                                        text=i18n._('Convert images'),
                                         style='Settings.TLabelframe')
 
         self.radio_no_conversion = ttk.Radiobutton(
-            self.conv_left, text="No format conversion",
+            self.conv_left, text=i18n._("No format conversion"),
             value=0, variable=self.var_conversion)
         self.radio_convert_big = ttk.Radiobutton(
-            self.conv_left, text="Convert big PNG photos only",
+            self.conv_left, text=i18n._("Convert big PNG photos only"),
             value=1, variable=self.var_conversion)
         self.radio_convert_all = ttk.Radiobutton(
-            self.conv_left, text="Convert all images",
+            self.conv_left, text=i18n._("Convert all images"),
             value=2, variable=self.var_conversion)
 
         self.lbl_convert_target = ttk.Label(
-            self.conv_left, text="Convert to:", style="Panel_Body.TLabel")
+            self.conv_left, text=i18n._("Convert to:"), style="Panel_Body.TLabel")
         # Not bound to the StringVar directly, so the field can be shown blank
         # (when no conversion is selected) without losing the saved target.
         self.combo_convert_target = ttk.Combobox(
@@ -426,7 +431,7 @@ class SettingsWindow(ttk.Frame):
                                        self._on_target_selected)
 
         self.chk_del_original = ttk.Checkbutton(
-            self.conv_left, text="Delete original file after conversion",
+            self.conv_left, text=i18n._("Delete original file after conversion"),
             variable=self.var_del_original)
 
     def mount_tab_conversion(self):
@@ -457,23 +462,23 @@ class SettingsWindow(ttk.Frame):
 
         self.png_fr1 = ttk.Frame(self.tab_png)
         self.png_right = ttk.Labelframe(self.png_fr1,
-                                        text='Color & transparency',
+                                        text=i18n._('Color & transparency'),
                                         style='Settings.TLabelframe')
 
         self.radio_keep_colors = ttk.Radiobutton(
-            self.png_right, text="Auto (keep current colors)",
+            self.png_right, text=i18n._("Auto (keep current colors)"),
             value=0, variable=self.var_reduce_colors)
         self.radio_reduce_colors = ttk.Radiobutton(
-            self.png_right, text="Reduce palette to max colors:",
+            self.png_right, text=i18n._("Reduce palette to max colors:"),
             value=1, variable=self.var_reduce_colors)
         self.spin_max_colors = ttk.Spinbox(
             self.png_right, from_=2, to=255, increment=2,
             textvariable=self.var_max_colors)
         self.chk_remove_alpha = ttk.Checkbutton(
-            self.png_right, text="Remove transparency",
+            self.png_right, text=i18n._("Remove transparency"),
             variable=self.var_remove_alpha)
         self.btn_set_bg_color = ttk.Button(
-            self.png_right, text='Set background color',
+            self.png_right, text=i18n._('Set background color'),
             command=self.choose_color)
         self.lbl_bg_color = tk.Label(self.png_right)
         self.lbl_bg_color['bg'] = self.var_bg_color[1]
@@ -497,14 +502,14 @@ class SettingsWindow(ttk.Frame):
     def generate_tab_webp(self):
         self.webp_fr1 = ttk.Frame(self.tab_webp)
         self.webp_left = ttk.Labelframe(self.webp_fr1,
-                                        text='WebP quality',
+                                        text=i18n._('WebP quality'),
                                         style='Settings.TLabelframe')
         self.webp_right = ttk.Labelframe(self.webp_fr1,
-                                         text='Other options',
+                                         text=i18n._('Other options'),
                                          style='Settings.TLabelframe')
 
         self.radio_webp_lossy = ttk.Radiobutton(self.webp_left,
-                                                text="Lossy, quality:",
+                                                text=i18n._("Lossy, quality:"),
                                                 value=0,
                                                 variable=self.var_webp_lossless)
 
@@ -513,12 +518,12 @@ class SettingsWindow(ttk.Frame):
                                              textvariable=self.var_webp_quality)
 
         self.radio_webp_lossless = ttk.Radiobutton(self.webp_left,
-                                                   text="Lossless",
+                                                   text=i18n._("Lossless"),
                                                    value=1,
                                                    variable=self.var_webp_lossless)
 
         self.lbl_webp_method = ttk.Label(self.webp_right,
-                                         text="Compression method (0–6):",
+                                         text=i18n._("Compression method (0–6):"),
                                          style="Panel_Body.TLabel")
 
         self.spin_webp_method = ttk.Spinbox(self.webp_right,
@@ -566,11 +571,11 @@ class SettingsWindow(ttk.Frame):
 
         self.more_fr1 = ttk.Frame(self.tab_more)
         self.more_left = ttk.Labelframe(self.more_fr1,
-                                        text='User Interface',
+                                        text=i18n._('User Interface'),
                                         style='Settings.TLabelframe')
 
         self.more_right = ttk.Labelframe(self.more_fr1,
-                                         text='Reset app defaults',
+                                         text=i18n._('Reset app defaults'),
                                          style='Settings.TLabelframe')
 
         themes = self.gui_style.theme_names()
@@ -579,7 +584,45 @@ class SettingsWindow(ttk.Frame):
                                      variable=self.var_theme)
             self.radio_themes.append(button)
 
-        self.btn_reset_all = ttk.Button(self.more_right, text='Reset all settings',
+        # Language selection
+        from optimize_images_x import i18n as i18n_settings
+
+        self.lbl_language = ttk.Label(self.more_left, text=i18n._('Language:'))
+        self.lbl_language.grid(column=0, row=len(themes), sticky='w', pady=(10, 5))
+
+        self.combo_language = ttk.Combobox(self.more_left, state='readonly')
+        available_langs = i18n_settings.get_available_languages()
+
+        # Always offer English (source strings, no .mo needed) + discovered locales
+        lang_codes = ['en'] + [l for l in available_langs if l != 'en']
+        lang_display = {
+            'en': 'English',
+            'pt': 'Português',
+        }
+        lang_options = [lang_display.get(code, code) for code in lang_codes]
+        self.combo_language['values'] = lang_options
+        self._lang_codes = lang_codes
+
+        # Set saved language as selected, fall back to system locale
+        saved_lang = getattr(self.app_settings, 'language', None) or 'en'
+        if saved_lang in self._lang_codes:
+            self.combo_language.current(self._lang_codes.index(saved_lang))
+        else:
+            try:
+                import locale as loc_mod
+                current_loc = loc_mod.getlocale()[0] or 'en'
+                short = current_loc.split('_')[0].lower()
+                if short in self._lang_codes:
+                    self.combo_language.current(self._lang_codes.index(short))
+                else:
+                    self.combo_language.current(0)
+            except Exception:
+                self.combo_language.current(0)
+
+        self.combo_language.grid(column=1, row=len(themes), sticky='w', pady=(10, 5))
+        self.combo_language.bind('<<ComboboxSelected>>', self._on_language_changed)
+
+        self.btn_reset_all = ttk.Button(self.more_right, text=i18n._('Reset all settings'),
                                         command=self.reset_all_settings)
 
     def mount_tab_more(self):
@@ -597,6 +640,12 @@ class SettingsWindow(ttk.Frame):
         for radio in self.radio_themes:
             radio.grid(sticky='w')
 
+        # Mount language selection widgets if they exist
+        if hasattr(self, 'lbl_language'):
+            self.lbl_language.grid(column=0, row=len(self.radio_themes), sticky='w', pady=(10, 5))
+        if hasattr(self, 'combo_language'):
+            self.combo_language.grid(column=1, row=len(self.radio_themes), sticky='w', pady=(10, 5))
+
         self.btn_reset_all.grid(sticky='w')
 
         self.more_fr1.grid_columnconfigure(0, weight=1)
@@ -604,8 +653,95 @@ class SettingsWindow(ttk.Frame):
 
         self.more_fr1.pack(side='top', expand=True, fill='both')
 
+    def _on_language_changed(self, event):
+        """Handle language selection change — applies immediately."""
+        from optimize_images_x import i18n as i18n_change
+
+        selected_index = self.combo_language.current()
+        if selected_index >= 0 and selected_index < len(self._lang_codes):
+            new_lang = self._lang_codes[selected_index]
+            i18n_change.change_language(new_lang)
+            self.app_settings.language = new_lang
+            self.app_settings.save()
+
+            # Refresh main window UI
+            if self.main_window:
+                self.main_window.refresh_language()
+
+            # Refresh settings window UI
+            self.refresh_language()
+
+    def refresh_language(self):
+        """Refresh all UI text to reflect the current language."""
+        self.master.title(i18n._('Settings'))
+
+        # Tab titles
+        self.note.tab(self.note.tabs()[0], text=i18n._('General'))
+        self.note.tab(self.note.tabs()[1], text=i18n._('JPEG'))
+        self.note.tab(self.note.tabs()[2], text=i18n._('Conversion'))
+        self.note.tab(self.note.tabs()[3], text=i18n._('PNG'))
+        self.note.tab(self.note.tabs()[4], text=i18n._('WebP'))
+        self.note.tab(self.note.tabs()[5], text=i18n._('More'))
+
+        # --- General tab ---
+        self.general_left.config(text=i18n._('Image size reduction'))
+        self.general_right.config(text=i18n._('Global options'))
+        self.radio_keep_orig_size.config(text=i18n._('Keep original size'))
+        self.radio_downsize_img.config(text=i18n._('Downsize image to fit:'))
+        self.lbl_max_w.config(text=i18n._('Max width:'))
+        self.lbl_max_h.config(text=i18n._('Max height:'))
+        self.label2.config(text=i18n._('label2'))
+        self.chk_recurse.config(text=i18n._('Recurse through subfolders'))
+        self.chk_fast_mode.config(text=i18n._('Fast mode'))
+        self.chk_convert_gray.config(text=i18n._('Convert to grayscale'))
+        self.chk_no_comparison.config(text=i18n._('No file size comparison'))
+        self.chk_keep_exif.config(text=i18n._('Keep EXIF metadata'))
+        if DND_AVAILABLE:
+            self.chk_enable_dnd.config(text=i18n._('Enable drag-and-drop'))
+        else:
+            self.chk_enable_dnd.config(
+                text=i18n._('Enable drag-and-drop (requires tkinterdnd2)'))
+        self.lbl_jobs.config(text=i18n._('Simultaneous jobs:'))
+        self.chk_auto_jobs.config(text=i18n._('Auto (based on CPU)'))
+
+        # --- JPEG tab ---
+        self.jpeg_left.config(text=i18n._('JPEG Quality'))
+        self.radio_dynamic.config(text=i18n._('Auto/Dynamic'))
+        self.radio_fixed.config(text=i18n._('Fixed value:'))
+
+        # --- Conversion tab ---
+        self.conv_left.config(text=i18n._('Convert images'))
+        self.radio_no_conversion.config(text=i18n._('No format conversion'))
+        self.radio_convert_big.config(text=i18n._('Convert big PNG photos only'))
+        self.radio_convert_all.config(text=i18n._('Convert all images'))
+        self.lbl_convert_target.config(text=i18n._('Convert to:'))
+        self.chk_del_original.config(
+            text=i18n._('Delete original file after conversion'))
+
+        # --- PNG tab ---
+        self.png_right.config(text=i18n._('Color & transparency'))
+        self.radio_keep_colors.config(text=i18n._('Auto (keep current colors)'))
+        self.radio_reduce_colors.config(
+            text=i18n._('Reduce palette to max colors:'))
+        self.chk_remove_alpha.config(text=i18n._('Remove transparency'))
+        self.btn_set_bg_color.config(text=i18n._('Set background color'))
+
+        # --- WebP tab ---
+        self.webp_left.config(text=i18n._('WebP quality'))
+        self.webp_right.config(text=i18n._('Other options'))
+        self.radio_webp_lossy.config(text=i18n._('Lossy, quality:'))
+        self.radio_webp_lossless.config(text=i18n._('Lossless'))
+        self.lbl_webp_method.config(
+            text=i18n._('Compression method (0–6):'))
+
+        # --- More tab ---
+        self.more_left.config(text=i18n._('User Interface'))
+        self.more_right.config(text=i18n._('Reset app defaults'))
+        self.lbl_language.config(text=i18n._('Language:'))
+        self.btn_reset_all.config(text=i18n._('Reset all settings'))
+
     def choose_color(self):
-        color = askcolor(title='Select background color', parent=self)
+        color = askcolor(title=i18n._('Select background color'), parent=self)
         if not color or color[0] is None:
             return  # the user cancelled the dialog
         self.var_bg_color = color
@@ -755,10 +891,10 @@ class SettingsWindow(ttk.Frame):
         self._update_enabled_states()
 
     def reset_all_settings(self):
-        msg = 'Resetting all settings will reload all default settings and the ' \
-              'application will be restarted immediately.\n\n' \
-              'Do you want to proceed?'
-        proceed = messagebox.askyesno(title='Reset all settings and restart?',
+        msg = i18n._('Resetting all settings will reload all default settings and the ' \
+                     'application will be restarted immediately.\n\n' \
+                     'Do you want to proceed?')
+        proceed = messagebox.askyesno(title=i18n._('Reset all settings and restart?'),
                                       message=msg, parent=self)
         if proceed:
             self.app_settings.reset()

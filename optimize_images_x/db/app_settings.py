@@ -18,6 +18,7 @@ class AppSettings:
         self.app_style = 'clam'
         self.last_opened_dir = '~/'
         self.last_watched_dir = '~/'
+        self.language = 'en'
         self.load()
 
     def load(self):
@@ -34,6 +35,7 @@ class AppSettings:
         self.app_style = settings['app_style']
         self.last_opened_dir = settings['last_opened_dir']
         self.last_watched_dir = settings['last_watched_dir']
+        self.language = settings['language'] if 'language' in settings.keys() else 'en'
 
     def save(self):
         sql = """
@@ -48,7 +50,8 @@ class AppSettings:
                 main_window_h=?,
                 app_style=?,
                 last_opened_dir=?,
-                last_watched_dir=?
+                last_watched_dir=?,
+                language=?
             WHERE id=1
             """
 
@@ -62,7 +65,8 @@ class AppSettings:
                   self.main_window_h,
                   self.app_style,
                   self.last_opened_dir,
-                  self.last_watched_dir)
+                  self.last_watched_dir,
+                  self.language)
 
         execute_with_params(self.db_path, sql, values)
 

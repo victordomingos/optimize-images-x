@@ -1,8 +1,20 @@
 # encoding: utf-8
 import os
+import re
 import sys
 
-from setuptools import setup, find_packages
+from setuptools import setup
+from setuptools.command.sdist import sdist
+
+
+class CustomSdist(sdist):
+    """Custom sdist command to ensure locale data is included."""
+
+    def run(self):
+        # Compile .po files to .mo before creating the distribution
+        self.run_command('compile_catalog')
+        super().run()
+
 
 used = sys.version_info
 required = (3, 10)
@@ -25,11 +37,22 @@ def read_readme(file_name):
         return f.read()
 
 
+def read_version():
+    # Parsed from source rather than imported: under an isolated PEP 517
+    # build, the working directory isn't guaranteed to be on sys.path, so
+    # `__import__('optimize_images_x')` can raise ModuleNotFoundError.
+    init_path = os.path.join(os.path.dirname(__file__),
+                             'optimize_images_x', '__init__.py')
+    with open(init_path) as f:
+        match = re.search(r"^__version__\s*=\s*['\"]([^'\"]+)['\"]", f.read(), re.M)
+    return match.group(1)
+
+
 setup(name='optimize-images-x',
-      version=__import__('optimize_images_x').__version__,
+      version=read_version(),
       description=short_desc,
       author="Victor Domingos",
-      packages=find_packages(),
+      cmdclass={'sdist': CustomSdist},
       include_package_data=True,
       long_description=read_readme('README.md'),  # for PyPI
       long_description_content_type="text/markdown",
@@ -47,7 +70,6 @@ setup(name='optimize-images-x',
           'Intended Audience :: End Users/Desktop',
           'Intended Audience :: Developers',
           'Intended Audience :: Information Technology',
-          'License :: OSI Approved :: MIT License',
           'Natural Language :: English',
           'Operating System :: OS Independent',
           'Operating System :: MacOS :: MacOS X',
@@ -77,6 +99,10 @@ setup(name='optimize-images-x',
 
       extras_require={
           'dnd': ['tkinterdnd2'],
+          # Only needed to run `setup.py extract_messages` / `compile_catalog`
+          # by hand during translation work; release builds get Babel from
+          # pyproject.toml's build-system requirements instead.
+          'dev': ['Babel>=2.9.0'],
       },
 
       entry_points={

@@ -22,6 +22,7 @@ from optimize_images_x.calcs import human
 from optimize_images_x.file_handling import open_in_default_viewer
 from optimize_images_x.global_setup import OPTIMIZED
 from optimize_images_x.gui.extra_tk_utilities.tooltips import add_tooltip
+import optimize_images_x.i18n as i18n
 from optimize_images_x.image_info import read_image_info
 from optimize_images_x.task import Task
 
@@ -113,7 +114,7 @@ class ImageInfoWindow:
         thumb.grid(row=0, column=0, rowspan=4, sticky='nw', padx=(0, 14))
         thumb.bind('<Double-1>',
                    lambda event: open_in_default_viewer(self.filepath))
-        add_tooltip(thumb, 'Double-click to open the image')
+        add_tooltip(thumb, i18n._('Double-click to open the image'))
 
         name_label = ttk.Label(
             header,
@@ -151,7 +152,7 @@ class ImageInfoWindow:
             return ttk.Label(parent, image=self._thumbnail, relief='solid',
                              borderwidth=1)
         except OSError:
-            return ttk.Label(parent, text='(no preview)',
+            return ttk.Label(parent, text=i18n._('(no preview)'),
                              foreground=self.muted_color)
 
     def _is_optimized(self) -> bool:
@@ -186,26 +187,26 @@ class ImageInfoWindow:
         details.pack(fill='x', anchor='w')
         row = 0
         if self._is_optimized():
-            row = self._add_section(details, row, 'Optimization',
+            row = self._add_section(details, row, i18n._('Optimization'),
                                     self._optimization_rows())
-        self._add_section(details, row, 'Image properties',
+        self._add_section(details, row, i18n._('Image properties'),
                           self.info.properties, columns=2)
-        details.columnconfigure(5, weight=1)   # absorb slack; keep left-aligned
+        details.columnconfigure(5, weight=1)  # absorb slack; keep left-aligned
 
         self._build_exif(body)
 
     def _optimization_rows(self):
         rows = {
-            'Original size': human(self.task.original_filesize),
-            'Final size': human(self.task.final_filesize),
-            'Saved': (f'{human(self.task.bytes_saved)} '
-                      f'({self.task.percent_saved:.1f}%)'),
+            i18n._('Original size'): human(self.task.original_filesize),
+            i18n._('Final size'): human(self.task.final_filesize),
+            i18n._('Saved'): (f'{human(self.task.bytes_saved)} '
+                              f'({self.task.percent_saved:.1f}%)'),
         }
         if self.task.was_downsized:
-            rows['Downsized'] = 'yes'
+            rows[i18n._('Downsized')] = 'yes'
         if self.task.was_converted:
-            rows['Converted'] = f'{self.task.orig_format} \u2192 ' \
-                                f'{self.task.result_format}'
+            rows[i18n._('Converted')] = f'{self.task.orig_format} \u2192 ' \
+                                        f'{self.task.result_format}'
         return rows
 
     def _add_section(self, parent, row, title, rows, columns=1):
@@ -218,7 +219,7 @@ class ImageInfoWindow:
         # it, so tall sections use the empty horizontal space instead of
         # stretching the window downwards.
         if columns == 2 and len(items) > 4:
-            parent.columnconfigure(2, minsize=28)   # gap between the columns
+            parent.columnconfigure(2, minsize=28)  # gap between the columns
             half = (len(items) + 1) // 2
             blocks = (items[:half], items[half:])
             for line in range(half):
@@ -226,7 +227,7 @@ class ImageInfoWindow:
                     if line >= len(block):
                         continue
                     label, value = block[line]
-                    base = block_index * 3   # left -> 0/1, right -> 3/4
+                    base = block_index * 3  # left -> 0/1, right -> 3/4
                     self._kv_row(parent, row + line, base, label, value)
             return row + half
         for line, (label, value) in enumerate(items):
@@ -241,10 +242,10 @@ class ImageInfoWindow:
             .grid(row=row, column=base_column + 1, sticky='w', pady=1)
 
     def _build_exif(self, parent):
-        ttk.Label(parent, text='EXIF', font=self.bold_font) \
+        ttk.Label(parent, text=i18n._('EXIF'), font=self.bold_font) \
             .pack(anchor='w', pady=(12, 4))
         if not self.info.exif:
-            ttk.Label(parent, text='This image has no EXIF metadata.',
+            ttk.Label(parent, text=i18n._('This image has no EXIF metadata.'),
                       foreground=self.muted_color).pack(anchor='w')
             return
 
@@ -252,8 +253,8 @@ class ImageInfoWindow:
         holder.pack(fill='both', expand=True)
         tree = ttk.Treeview(holder, columns=('value',),
                             show='tree headings', height=9)
-        tree.heading('#0', text='Tag', anchor='w')
-        tree.heading('value', text='Value', anchor='w')
+        tree.heading('#0', text=i18n._('Property'), anchor='w')
+        tree.heading('value', text=i18n._('Value'), anchor='w')
         tree.column('#0', width=200, stretch=False)
         tree.column('value', width=260)
         for section_title, tags in self.info.exif.items():

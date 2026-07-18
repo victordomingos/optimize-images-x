@@ -2,6 +2,8 @@ import os
 import platform
 import sys
 
+import optimize_images_x.i18n as i18n
+
 # Format support is reported by the engine, reflecting the codecs actually
 # present in the Pillow build in use. We prefer the public api namespace, but
 # fall back to the formats module (some engine builds expose the helpers only
@@ -9,11 +11,11 @@ import sys
 # so the application never fails to start because of the engine packaging.
 try:
     from optimize_images.api import (available_input_formats,
-                                      available_output_formats)
+                                     available_output_formats)
 except ImportError:
     try:
         from optimize_images.formats import (available_input_formats,
-                                              available_output_formats)
+                                             available_output_formats)
     except ImportError:
         available_input_formats = available_output_formats = None
 
@@ -26,17 +28,17 @@ else:
     INPUT_FORMATS = ['jpg', 'jpeg', 'mpo', 'png'] + _webp
     OUTPUT_FORMATS = ['jpeg', 'png'] + _webp
 
-WEBP_SUPPORTED = 'webp' in OUTPUT_FORMATS       # kept for backwards reference
+WEBP_SUPPORTED = 'webp' in OUTPUT_FORMATS  # kept for backwards reference
 
 # todo: account for windows paths...
 DB_PATH = os.path.expanduser('~') + '/optimize_images_x_settings.sqlite'
 DEFAULT_PATH = os.path.expanduser('~')
 
 APP_PATH = 'xxx'
-APP_NAME = 'Optimize Images X'
-APP_LICENSE = 'MIT License'
+_APP_NAME_STR = "Optimize Images X"
+_APP_LICENSE_STR = "MIT License"
 
-CREDITS = [
+_CREDITS_STRS = [
     "Optimize Images X was initially created by Victor Domingos and both "
     "inspired and made possible by the work of many other developers, "
     "including the makers of existing image processing utilities, Pillow, "
@@ -44,6 +46,19 @@ CREDITS = [
     "application, Optimize Images (the CLI version).",
     "\nIcon theme from https://feathericons.com, copyrighted under the MIT licence."
 ]
+
+
+def APP_NAME():
+    return i18n._(_APP_NAME_STR)
+
+
+def APP_LICENSE():
+    return i18n._(_APP_LICENSE_STR)
+
+
+def CREDITS():
+    return [i18n._(s) for s in _CREDITS_STRS]
+
 
 _ALL_EXT = ' '.join('.' + ext for ext in INPUT_FORMATS)
 SUPPORTED_TYPES = [('All supported images', _ALL_EXT)]
@@ -55,6 +70,7 @@ PENDING = 0
 IN_PROGRESS = 1
 OPTIMIZED = 2
 SKIPPED = 3
+ERROR = 4
 
 MAIN_MIN_WIDTH = 600
 MAIN_MIN_HEIGHT = 250

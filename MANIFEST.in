@@ -1,1 +1,3 @@
 include optimize_images_x/images/icons/*.png
+
+recursive-include optimize_images_x/locale *.mo

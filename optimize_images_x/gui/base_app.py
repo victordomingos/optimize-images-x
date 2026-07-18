@@ -6,6 +6,7 @@ import tkinter.font
 from functools import lru_cache
 from tkinter import ttk
 
+import optimize_images_x.i18n as i18n
 from optimize_images_x.global_setup import text_color, ui_font
 from optimize_images_x.gui.extra_tk_utilities.auto_scrollbar import AutoScrollbar
 from optimize_images_x.gui.extra_tk_utilities.status_bar import StatusBar
@@ -236,9 +237,18 @@ class BaseApp(ttk.Frame):
         self.update_idletasks()
 
     def configure_tree(self):
+        _col_keys = {
+            'icon': '',
+            'file': 'File',
+            'original_size': 'Original Size',
+            'new_size': 'New Size',
+            'percent_saved': '% Saved',
+        }
         for col in self.tree['columns']:
+            key = _col_keys.get(col, col.title())
+            heading_text = '' if not key else i18n._(key)
             self.tree.heading(
-                col, text=col.title(),
+                col, text=heading_text,
                 # Sort by column by clicking on header: not sorting here,
                 # because we need a sorting method that works with 'humanized'
                 # file sizes...

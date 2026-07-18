@@ -12,9 +12,9 @@ from timeit import default_timer as timer
 from tkinter import ttk, messagebox
 from tkinter.filedialog import askopenfilenames, askdirectory
 
+import optimize_images_x.i18n as i18n
 from optimize_images.api import PublicTaskResult
 from optimize_images.api import optimize_single_image
-
 from optimize_images_x.calcs import calc_percent_saved, get_percent_str, human
 from optimize_images_x.db.app_settings import AppSettings
 from optimize_images_x.db.app_stats import AppStats
@@ -56,6 +56,7 @@ class App(BaseApp):
         self.batch_done = threading.Event()
         self.batch_processed = 0
         self.batch_n_tasks = 0
+        self.batch_errors = 0
         self.batch_summary = (0, 0.0, 0, 0)
         self.observer = None
         self.watch_stop = None
@@ -63,12 +64,16 @@ class App(BaseApp):
 
         self.master = master
 
+        # Apply saved language
+        saved_lang = getattr(app_settings, 'language', None) or 'en'
+        i18n.change_language(saved_lang)
+
         if platform.system() == 'Darwin':
             pass  # no configure — let Aqua paint the native, mode-aware background
         else:
             self.master.configure(background='grey95')
 
-        self.master.title(APP_NAME)
+        self.master.title(i18n._("Optimize Images X"))
 
         self.gui_style = ttk.Style()
         self.gui_style.configure('Treeview.Heading',
@@ -176,7 +181,7 @@ class App(BaseApp):
         try:
             ImageInfoWindow.show(self.master, filepath, task)
         except OSError as error:
-            messagebox.showerror('Image info',
+            messagebox.showerror(i18n._('Image info'),
                                  f'Could not read image:\n{error}')
 
     def get_selected_img_path(self):
@@ -189,19 +194,19 @@ class App(BaseApp):
         return filepath
 
     def mount_table(self):
-        self.tree['columns'] = ('', 'File', 'Original Size',
-                                'New Size', '% Saved')
+        self.tree['columns'] = ('icon', 'file', 'original_size',
+                                'new_size', 'percent_saved')
 
         self.tree.column('#0', anchor='w', minwidth=0, stretch=0, width=0)
 
-        self.tree.column('', anchor='w', minwidth=30, stretch=0, width=30)
-        self.tree.column('File', minwidth=150, stretch=1, width=200)
-        self.tree.column('Original Size', anchor='e', minwidth=90, stretch=0, width=90)
-        self.tree.column('New Size', anchor='e', minwidth=90, stretch=0, width=90)
-        self.tree.column('% Saved', anchor='e', minwidth=60, stretch=0, width=70)
+        self.tree.column('icon', anchor='w', minwidth=30, stretch=0, width=30)
+        self.tree.column('file', minwidth=150, stretch=1, width=200)
+        self.tree.column('original_size', anchor='e', minwidth=90, stretch=0, width=90)
+        self.tree.column('new_size', anchor='e', minwidth=90, stretch=0, width=90)
+        self.tree.column('percent_saved', anchor='e', minwidth=60, stretch=0, width=70)
 
-        self.tree["displaycolumns"] = ('', 'File', 'Original Size',
-                                       'New Size', '% Saved')
+        self.tree["displaycolumns"] = ('icon', 'file', 'original_size',
+                                       'new_size', 'percent_saved')
         self.configure_tree()
         self.leftframe.grid_columnconfigure(0, weight=1)
         self.leftframe.grid_columnconfigure(1, weight=0)
@@ -223,42 +228,52 @@ class App(BaseApp):
         self.add_files_icon = tool_icons["add_files"]
         self.btn_add_files = ttk.Button(self.topframe,
                                         image=self.add_files_icon,
-                                        text='Add files…',
+                                        text=i18n._('Add files…'),
                                         compound=tk.TOP,
                                         command=self.select_files,
                                         style='Toolbutton')
+        self.btn_add_files._text_key = 'Add files…'
+        self.btn_add_files._tooltip_key = 'Add image files to the list'
 
         self.add_folder_icon = tool_icons["add_folder"]
         self.btn_add_folder = ttk.Button(self.topframe,
                                          image=self.add_folder_icon,
-                                         text="Add folder…",
+                                         text=i18n._('Add folder…'),
                                          compound=tk.TOP,
                                          command=self.select_folder,
                                          style='Toolbutton')
+        self.btn_add_folder._text_key = 'Add folder…'
+        self.btn_add_folder._tooltip_key = 'Add all images from a folder'
 
         self.clear_icon = tool_icons["clear_clist"]
         self.btn_clear_queue = ttk.Button(self.topframe,
                                           image=self.clear_icon,
-                                          text="Clear list",
+                                          text=i18n._('Clear list'),
                                           compound=tk.TOP,
                                           command=self.clear_list,
                                           style='Toolbutton')
+        self.btn_clear_queue._text_key = 'Clear list'
+        self.btn_clear_queue._tooltip_key = 'Remove every item from the list'
 
         self.watch_folder_icon = tool_icons["watch_folder"]
         self.btn_watch_folder = ttk.Button(self.topframe,
                                            image=self.watch_folder_icon,
-                                           text="Watch folder…",
+                                           text=i18n._('Watch folder…'),
                                            compound=tk.TOP,
                                            command=self.select_folder_to_watch,
                                            style='Toolbutton')
+        self.btn_watch_folder._text_key = 'Watch folder…'
+        self.btn_watch_folder._tooltip_key = 'Watch a folder and optimize new images automatically'
 
         self.settings_icon = tool_icons["settings"]
         self.btn_settings = ttk.Button(self.topframe,
                                        image=self.settings_icon,
-                                       text="Settings",
+                                       text=i18n._('Settings'),
                                        compound=tk.TOP,
                                        command=self.create_window_settings,
                                        style='Toolbutton')
+        self.btn_settings._text_key = 'Settings'
+        self.btn_settings._tooltip_key = 'Open settings'
 
         # self.dicas.bind(self.btn_add_files, 'tooltip text. (⌘N)')
 
@@ -268,12 +283,12 @@ class App(BaseApp):
         self.btn_watch_folder.grid(row=0, column=14, ipady=4)
         self.btn_settings.grid(row=0, column=15, ipady=4)  # last button
 
-        add_tooltip(self.btn_add_files, 'Add image files to the list')
-        add_tooltip(self.btn_add_folder, 'Add all images from a folder')
-        add_tooltip(self.btn_clear_queue, 'Remove every item from the list')
-        add_tooltip(self.btn_watch_folder,
-                    'Watch a folder and optimize new images automatically')
-        add_tooltip(self.btn_settings, 'Open settings')
+        self.btn_add_files._tooltip = add_tooltip(self.btn_add_files, i18n._('Add image files to the list'))
+        self.btn_add_folder._tooltip = add_tooltip(self.btn_add_folder, i18n._('Add all images from a folder'))
+        self.btn_clear_queue._tooltip = add_tooltip(self.btn_clear_queue, i18n._('Remove every item from the list'))
+        self.btn_watch_folder._tooltip = add_tooltip(self.btn_watch_folder,
+                                                     i18n._('Watch a folder and optimize new images automatically'))
+        self.btn_settings._tooltip = add_tooltip(self.btn_settings, i18n._('Open settings'))
         # self.dicas.bind(self.btn_settings,
         #                'Mostrar/ocultar a janela de remessas. (⌘3)')
 
@@ -291,7 +306,8 @@ class App(BaseApp):
                 self.app_status.settings_window,
                 self.app_status,
                 self.app_settings,
-                self.task_settings)
+                self.task_settings,
+                self)
             self.app_status.is_settings_window_open = True
             self.app_status.settings_window.wm_protocol(
                 "WM_DELETE_WINDOW", self.close_window_settings)
@@ -304,31 +320,31 @@ class App(BaseApp):
     def generate_menu(self):
         self.master.config(menu=self.menu)
 
-        self.menu.add_cascade(label="File", menu=self.file_menu)
+        self.menu.add_cascade(label=i18n._("File"), menu=self.file_menu)
         self.file_menu.add_command(
-            label="Select files to process…",
+            label=i18n._("Select files to process…"),
             command=self.select_files,
             accelerator="Command+o")
         self.file_menu.add_command(
-            label="Select folder to process…",
+            label=i18n._("Select folder to process…"),
             command=self.select_folder,
             accelerator="Command+f")
         self.file_menu.add_separator()
         self.file_menu.add_command(
-            label="Watch a folder for new files…",
+            label=i18n._("Watch a folder for new files…"),
             command=self.select_folder_to_watch,
             accelerator="Command+Shift+F")
         self.file_menu.add_separator()
         self.file_menu.add_command(
-            label="Open image",
+            label=i18n._("Open image"),
             command=self.show_img)
         if platform.system() == 'Darwin':
             self.file_menu.add_command(
-                label="Quick Look Preview",
+                label=i18n._("Quick Look Preview"),
                 command=self.quicklook,
                 accelerator="Space")
         self.file_menu.add_command(
-            label="Show image info",
+            label=i18n._("Show image info"),
             command=self.show_info,
             accelerator="Command+I" if platform.system() == 'Darwin'
             else "Control+I")
@@ -338,27 +354,27 @@ class App(BaseApp):
 
         if platform.system() == 'Darwin':
             self.windowmenu = tk.Menu(self.menu, name='window')
-            self.menu.add_cascade(menu=self.windowmenu, label='Window')
+            self.menu.add_cascade(menu=self.windowmenu, label=i18n._('Window'))
             self.windowmenu.add_separator()
             self.master.createcommand('::tk::mac::ShowPreferences',
                                       self.create_window_settings)
         else:
             self.tools_menu = tk.Menu(self.menu, name='tools')
-            self.menu.add_cascade(menu=self.tools_menu, label='Tools')
-            self.tools_menu.add_command(label="Settings",
+            self.menu.add_cascade(menu=self.tools_menu, label=i18n._('Tools'))
+            self.tools_menu.add_command(label=i18n._("Settings"),
                                         command=self.create_window_settings,
                                         accelerator="Control+s")
 
         self.helpmenu = tk.Menu(self.menu)
-        self.menu.add_cascade(label="Help", menu=self.helpmenu)
-        self.helpmenu.add_command(label="About " + APP_NAME,
+        self.menu.add_cascade(label=i18n._("Help"), menu=self.helpmenu)
+        self.helpmenu.add_command(label=i18n._("About ") + APP_NAME(),
                                   command=lambda: AboutWindow(self.app_stats))
-        self.helpmenu.add_command(label="Credits & Thanks", command=ThanksWindow)
+        self.helpmenu.add_command(label=i18n._("Credits & Thanks"), command=ThanksWindow)
         self.helpmenu.add_separator()
 
         url = "https://no-title.victordomingos.com?s=oix"
         web_command = lambda: webbrowser.open(url, new=1, autoraise=True)
-        self.helpmenu.add_command(label="Visit the developer's website",
+        self.helpmenu.add_command(label=i18n._("Visit the developer's website"),
                                   command=web_command)
 
         self.master.createcommand('tkAboutDialog',
@@ -391,7 +407,7 @@ class App(BaseApp):
             folder = DEFAULT_PATH
 
         filepaths = askopenfilenames(parent=self,
-                                     title='Choose file(s)',
+                                     title=i18n._("Choose file(s)"),
                                      initialdir=folder,
                                      multiple=True,
                                      filetypes=SUPPORTED_TYPES)
@@ -416,7 +432,7 @@ class App(BaseApp):
             folder = DEFAULT_PATH
 
         path = askdirectory(parent=self,
-                            title='Choose folder',
+                            title=i18n._("Choose folder"),
                             initialdir=folder,
                             mustexist=True)
 
@@ -444,7 +460,7 @@ class App(BaseApp):
             folder = DEFAULT_PATH
 
         path = askdirectory(parent=self,
-                            title='Choose folder',
+                            title=i18n._("Choose folder"),
                             initialdir=folder,
                             mustexist=True)
 
@@ -455,10 +471,10 @@ class App(BaseApp):
         self.app_settings.save()
 
         # self.watch_folder_icon = tool_icons["watch_folder"]
-        self.btn_watch_folder.configure(text="Stop watching",
+        self.btn_watch_folder.configure(text=i18n._("Stop watching"),
                                         command=self.stop_watching_folder)
 
-        self.my_statusbar.set("Started watching folder for new files.")
+        self.my_statusbar.set(i18n._("Started watching folder for new files."))
         self.my_statusbar.show_progress()
 
         self.watch_stop = threading.Event()
@@ -544,11 +560,11 @@ class App(BaseApp):
             self.watch_stop = None
             self.watch_worker = None
 
-        self.btn_watch_folder.configure(text="Watch folder…",
+        self.btn_watch_folder.configure(text=i18n._("Watch folder…"),
                                         command=self.select_folder_to_watch)
 
         self.my_statusbar.hide_progress()
-        self.my_statusbar.set("Stopped watching folder.")
+        self.my_statusbar.set(i18n._("Stopped watching folder."))
 
     def apply_dnd(self):
         """Register or unregister the window as a drop target, per the setting."""
@@ -633,10 +649,10 @@ class App(BaseApp):
                            joinstyle='round')
         # Two lines of guidance.
         canvas.create_text(cx, h - 56,
-                           text='Drag and drop images or folders here',
+                           text=i18n._('Drag and drop images or folders here'),
                            fill=fg, font=self.statusFont)
         canvas.create_text(cx, h - 33,
-                           text='or use Add files/Add folder above',
+                           text=i18n._('or use Add files/Add folder above'),
                            fill=fg, font=self.btnFont)
 
     def refresh_appearance(self):
@@ -775,19 +791,19 @@ class App(BaseApp):
         Returns True if the user wants to proceed with the current drop.
         """
         proceed = messagebox.askokcancel(
-            title='Drag and drop',
-            message='The dropped images will be optimized in place, replacing '
-                    'the original files (always work on copies). Dropped '
-                    'folders are scanned according to your "Recurse through '
-                    'subfolders" setting.\n\nDo you want to proceed?',
+            title=i18n._("Drag and drop"),
+            message=i18n._('The dropped images will be optimized in place, replacing '
+                           'the original files (always work on copies). Dropped '
+                           'folders are scanned according to your "Recurse through '
+                           'subfolders" setting.\n\nDo you want to proceed?'),
             parent=self)
 
         if not proceed:
             return False
 
         keep_warning = messagebox.askyesno(
-            title='Drag and drop',
-            message='Do you want to see this warning next time?',
+            title=i18n._("Drag and drop"),
+            message=i18n._('Do you want to see this warning next time?'),
             parent=self)
 
         self.app_settings.show_dnd_msg = keep_warning
@@ -798,8 +814,8 @@ class App(BaseApp):
         self.app_status.clear_list()
         self.update_img_list()
         self.my_statusbar.hide_progress()
-        msg = 'Add image files or folders to start optimizing. ' \
-              'Original files will be replaced (always work on copies).'
+        msg = i18n._('Add image files or folders to start optimizing. ' \
+                     'Original files will be replaced (always work on copies).')
         self.my_statusbar.set(msg)
 
     def optimize_images(self):
@@ -821,6 +837,7 @@ class App(BaseApp):
         self.batch_done = threading.Event()
         self.batch_processed = 0
         self.batch_n_tasks = n_tasks
+        self.batch_errors = 0
 
         worker = threading.Thread(target=self._run_batch,
                                   args=(opts, paths),
@@ -840,18 +857,14 @@ class App(BaseApp):
 
         try:
             with concurrent.futures.ProcessPoolExecutor(max_workers=workers) as executor:
-                futures = [executor.submit(optimize, path) for path in paths]
+                futures = {executor.submit(optimize, path): path for path in paths}
                 for future in concurrent.futures.as_completed(futures):
+                    path = futures[future]
                     try:
                         result = future.result()
                     except Exception as ex:
-                        print('Optimization failed:', ex)
+                        self.batch_queue.put(('error', path, str(ex)))
                         continue
-                    current_img = result.img
-                    if result.was_optimized:
-                        n_optimized_files += 1
-                        weights_processed += result.orig_size
-                        weights_saved += result.orig_size - result.final_size
                     self.batch_queue.put(result)
         except concurrent.futures.process.BrokenProcessPool as bppex:
             print(bppex, current_img)
@@ -866,21 +879,28 @@ class App(BaseApp):
         updated = False
         while True:
             try:
-                result = self.batch_queue.get_nowait()
+                item = self.batch_queue.get_nowait()
             except Empty:
                 break
+
+            if isinstance(item, tuple) and item[0] == 'error':
+                tag, path, msg = item
+                self.my_statusbar.set(i18n._('Error') + ': ' + msg + ' | ' + os.path.basename(path))
+                self.batch_errors += 1
+                continue
+
             updated = True
             self.batch_processed += 1
             try:
-                self.app_status.update_task(result)
-                self.update_row(result)
+                self.app_status.update_task(item)
+                self.update_row(item)
             except Exception as ex:
-                print('Could not update row for', result.img, '-', ex)
+                print('Could not update row for', item.img, '-', ex)
 
         if updated:
             self.my_statusbar.progress_update(self.batch_processed)
             self.my_statusbar.set(
-                f'{self.batch_processed}/{self.batch_n_tasks} processed')
+                i18n._(f'{self.batch_processed}/{self.batch_n_tasks} processed'))
             self.update()
 
         if self.batch_done.is_set() and self.batch_queue.empty():
@@ -932,12 +952,12 @@ class App(BaseApp):
         if self.app_status.tasks_total_bytes_saved != 0:
             h_bytes = human(self.app_status.tasks_total_bytes_saved)
             percent = self.app_status.tasks_total_percent_saved
-            saved = f' Saved {h_bytes} ({percent:.1f}%)'
-        self.my_statusbar.set(f'{n_files} files, {total_weight} total{saved}')
+            saved = f' {i18n._("Saved")} {h_bytes} ({percent:.1f}%)'
+        self.my_statusbar.set(f'{n_files} {i18n._("files")}, {total_weight} {i18n._("total")}{saved}')
 
     def update_report(self):
         if self.app_status.processed_tasks_count == 0:
-            self.my_statusbar.set('No files were changed.')
+            self.my_statusbar.set(i18n._('No files were changed.'))
             return
 
         processed = self.app_status.processed_tasks_count
@@ -947,19 +967,19 @@ class App(BaseApp):
         percent = self.app_status.tasks_total_percent_saved
         avg = human(self.app_status.tasks_total_bytes_saved / processed)
 
-        msg = f'Optimized {processed}/{n_tasks} images. ' \
-              f'Saved: {saved} of {orig_size} ({percent:.1f}%), avg. {avg} per file.'
+        msg = f'{i18n._("Optimized")} {processed}/{n_tasks} {i18n._("images")}. ' \
+              f'{i18n._("Saved")}: {saved} {i18n._("of")} {orig_size} ({percent:.1f}%), {i18n._("avg.")} {avg} {i18n._("per file")}.'
         self.my_statusbar.set(msg)
         self.update_idletasks()
 
     def show_welcome_msg(self):
         if self.app_settings.show_welcome_msg == 1:
-            msg1 = 'Please notice that all image optimizations are applied ' \
-                   'destructivelly to the provided files. Always work on copies, ' \
-                   'not on original image files.\n\n' \
-                   'Do you want to receive this warning next time?'
+            msg1 = i18n._('Please notice that all image optimizations are applied ' \
+                          'destructivelly to the provided files. Always work on copies, ' \
+                          'not on original image files.\n\n' \
+                          'Do you want to receive this warning next time?')
 
-            answer1 = messagebox.askyesno(title='Welcome to Optimize Images!',
+            answer1 = messagebox.askyesno(title=i18n._('Welcome to Optimize Images!'),
                                           message=msg1,
                                           parent=self)
 
@@ -968,15 +988,37 @@ class App(BaseApp):
 
     def show_watch_msg(self):
         if self.app_settings.show_watch_msg:
-            msg2 = 'Optimize Images will enter into Listening Mode, and watch ' \
-                   'the selected folder for any new image files being created ' \
-                   'until you press "Stop". After that moment, if a new image ' \
-                   'file is created, it will be immediately processed.\n\n' \
-                   'Do you want to receive this information next time?'
+            msg2 = i18n._('Optimize Images will enter into Listening Mode, and watch ' \
+                          'the selected folder for any new image files being created ' \
+                          'until you press "Stop". After that moment, if a new image ' \
+                          'file is created, it will be immediately processed.\n\n' \
+                          'Do you want to receive this information next time?')
 
-            answer2 = messagebox.askyesno(title='Watching a folder for new image files',
+            answer2 = messagebox.askyesno(title=i18n._('Watching a folder for new image files'),
                                           message=msg2,
                                           parent=self)
 
             self.app_settings.show_watch_msg = answer2
             self.app_settings.save()
+
+    def refresh_language(self):
+        """Refresh all UI text to reflect the current language."""
+        self.master.title(APP_NAME())
+
+        self.generate_menu()
+
+        for btn in [self.btn_add_files, self.btn_add_folder,
+                    self.btn_clear_queue, self.btn_watch_folder,
+                    self.btn_settings]:
+            if hasattr(btn, '_text_key'):
+                btn.config(text=i18n._(btn._text_key))
+            if hasattr(btn, '_tooltip') and btn._tooltip is not None:
+                btn._tooltip.set_text(i18n._(btn._tooltip_key))
+
+        self.configure_tree()
+        self.update_drop_hint()
+        self.update_count()
+        self.update_report()
+
+        if hasattr(self, 'settings_window') and self.settings_window is not None:
+            self.settings_window.refresh_language()

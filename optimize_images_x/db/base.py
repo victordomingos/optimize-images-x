@@ -72,6 +72,8 @@ def migrate(db_path: str) -> None:
                            'webp_lossless', 'BOOLEAN DEFAULT FALSE')
     _add_column_if_missing(db_path, 'task_settings',
                            'webp_method', 'INTEGER DEFAULT 6')
+    _add_column_if_missing(db_path, 'app_settings',
+                           'language', "TEXT DEFAULT 'en'")
 
 
 def initialize(db_path: str) -> None:
@@ -108,25 +110,28 @@ def initialize(db_path: str) -> None:
             main_window_h      INTEGER   DEFAULT 340,
             app_style          TEXT,
             last_opened_dir    TEXT,
-            last_watched_dir   TEXT
+            last_watched_dir   TEXT,
+            language           TEXT DEFAULT 'en'
         );
 
         INSERT OR IGNORE INTO app_settings 
-        (
-             id, 
-             show_welcome_msg, show_watch_msg, show_dnd_msg, enable_dnd,
-             main_window_x, main_window_y, main_window_w, main_window_h, 
-             app_style, 
-             last_opened_dir, last_watched_dir
-        )
-        VALUES 
-        (
-            1, 
-            1, 1, 1, 0,
-            0, 0, 600, 340,
-            '{default_app_style}', 
-            '', ''
-        );
+            (
+                 id,
+                 show_welcome_msg, show_watch_msg, show_dnd_msg, enable_dnd,
+                 main_window_x, main_window_y, main_window_w, main_window_h,
+                 app_style,
+                 last_opened_dir, last_watched_dir,
+                 language
+            )
+            VALUES
+            (
+                1,
+                1, 1, 1, 0,
+                0, 0, 600, 340,
+                '{default_app_style}',
+                '', '',
+                'en'
+            );
 
 
         CREATE TABLE IF NOT EXISTS task_settings 
@@ -344,19 +349,21 @@ def reset_app_settings(db_path: str) -> None:
     sql_script = f"""
         INSERT OR REPLACE INTO app_settings 
         (
-             id, 
-             show_welcome_msg, show_watch_msg, 
-             main_window_x, main_window_y, main_window_w, main_window_h, 
-             app_style, 
-             last_opened_dir, last_watched_dir
+             id,
+             show_welcome_msg, show_watch_msg,
+             main_window_x, main_window_y, main_window_w, main_window_h,
+             app_style,
+             last_opened_dir, last_watched_dir,
+             language
         )
         VALUES 
         (
-            1, 
-            1, 1, 
-            1, 1, 700, 600, 
-            '{default_app_style}', 
-            '',''
+            1,
+            1, 1,
+            1, 1, 700, 600,
+            '{default_app_style}',
+            '','',
+            'en'
         );
         """
     execute(db_path, sql_script)

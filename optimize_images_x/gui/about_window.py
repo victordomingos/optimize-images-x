@@ -3,6 +3,7 @@ import tkinter as tk
 import tkinter.font
 from tkinter import ttk
 
+import optimize_images_x.i18n as i18n
 from optimize_images_x import __version__
 from optimize_images_x.calcs import human
 from optimize_images_x.global_setup import APP_NAME
@@ -35,13 +36,13 @@ class ThanksWindow:
             self.thanksRoot, padding="10 10 10 10")
 
         self.campo_texto = tk.Text(self.thanksframe, wrap='word', height=20)
-        self.campo_texto.insert("end", "\n".join(CREDITS))
+        self.campo_texto.insert("end", "\n".join(CREDITS()))
         self.campo_texto.tag_configure("center", justify='center')
         self.campo_texto.tag_add("center", 1.0, "end")
         self.campo_texto.pack(side='top')
 
         self.close_button = ttk.Button(
-            self.thanksframe_bottom, text="Thanks!", command=self.thanksRoot.destroy)
+            self.thanksframe_bottom, text=i18n._("Thanks!"), command=self.thanksRoot.destroy)
         self.close_button.pack()
         self.thanksframe.pack(side=tk.TOP)
         self.thanksframe_bottom.pack(side=tk.BOTTOM)
@@ -92,11 +93,11 @@ class AboutWindow:
 
         # ---------- TOPO -----------
         self.app_lbl = ttk.Label(
-            self.pframe_top, font=self.appfont, text=APP_NAME)
+            self.pframe_top, font=self.appfont, text=APP_NAME())
 
         self.assin_lbl = ttk.Label(
             self.pframe_top,
-            text="Saving space and making\nwebsites faster since 2018.\n\n")
+            text=i18n._("Saving space and making\nwebsites faster since 2018.\n\n"))
 
         self.version_lbl = ttk.Label(self.pframe_top,
                                      font=self.copyfont,
@@ -116,33 +117,33 @@ class AboutWindow:
             avg_process_rate = processed_imgs / self.app_stats.processing_time
 
         self.lbl_imgs_loaded = ttk.Label(self.pframe_middle,
-                                         text=f"Loaded images: {loaded_imgs}")
+                                         text=f"{i18n._('Loaded images')}: {loaded_imgs}")
 
         self.lbl_imgs_loaded = ttk.Label(
             self.pframe_middle,
-            text=f"Total loaded weight: {human(loaded_weight)}")
+            text=f"{i18n._('Total loaded weight')}: {human(loaded_weight)}")
 
         self.lbl_processed_imgs = ttk.Label(
             self.pframe_top,
-            text=f"Optimized images: {processed_imgs}")
+            text=f"{i18n._('Optimized images')}: {processed_imgs}")
 
         self.lbl_weight_saved = ttk.Label(
             self.pframe_middle,
-            text=f"Total saved space: {human(weight_saved)}")
+            text=f"{i18n._('Total saved space')}: {human(weight_saved)}")
 
         self.lbl_avg_weight_saved = ttk.Label(
             self.pframe_middle,
-            text=f"Avg. weight reduction: {human(avg_weight_saved)}/f")
+            text=f"{i18n._('Avg. weight reduction')}: {human(avg_weight_saved)}/f")
 
         self.lbl_avg_process_rate = ttk.Label(
             self.pframe_middle,
-            text=f"Avg. processing rate: {avg_process_rate:.1f} f/s")
+            text=f"{i18n._('Avg. processing rate')}: {avg_process_rate:.1f} f/s")
 
         # ---------- FUNDO -----------
         self.copyright_lbl = ttk.Label(
             self.pframe_bottom, font=self.copyfont, text="\n\n© 2026 Victor Domingos")
         self.license_lbl = ttk.Label(
-            self.pframe_bottom, font=self.copyfont, text=APP_LICENSE)
+            self.pframe_bottom, font=self.copyfont, text=APP_LICENSE())
 
         self.app_lbl.pack(pady='20 8')
         self.version_lbl.pack()

@@ -20,6 +20,7 @@ ENTRY = "optimize_images_x/__main__.py"
 # resource_path() expects at runtime: <bundle>/optimize_images_x/images/...
 datas = [
     ("optimize_images_x/images", "optimize_images_x/images"),
+    ("optimize_images_x/locale", "optimize_images_x/locale"),
 ]
 binaries = []
 hiddenimports = []

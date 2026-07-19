@@ -16,7 +16,7 @@ class ThanksWindow:
         self.about_h = 370
 
         self.thanksRoot = tk.Toplevel()
-        self.thanksRoot.title("Special thanks")
+        self.thanksRoot.title(i18n._("Special thanks"))
 
         self.thanksRoot.focus()
 
@@ -47,6 +47,14 @@ class ThanksWindow:
         self.thanksframe.pack(side=tk.TOP)
         self.thanksframe_bottom.pack(side=tk.BOTTOM)
         self.thanksRoot.bind("<Command-w>", self.close_window)
+
+    def refresh_language(self):
+        """Refresh all UI text to reflect the current language."""
+        self.thanksRoot.title(i18n._("Special thanks"))
+        self.campo_texto.delete('1.0', 'end')
+        self.campo_texto.insert('end', "\n".join(CREDITS()))
+        self.campo_texto.tag_add("center", 1.0, "end")
+        self.close_button.config(text=i18n._("Thanks!"))
 
     @staticmethod
     def close_window(event):
@@ -96,7 +104,7 @@ class AboutWindow:
             self.pframe_top, font=self.appfont, text=APP_NAME())
 
         self.assin_lbl = ttk.Label(
-            self.pframe_top,
+            self.pframe_top, justify='center',
             text=i18n._("Saving space and making\nwebsites faster since 2018.\n\n"))
 
         self.version_lbl = ttk.Label(self.pframe_top,
@@ -105,21 +113,13 @@ class AboutWindow:
 
         # ---------- MEIO -----------
 
-        loaded_imgs = self.app_stats.images_loaded
-        loaded_weight = self.app_stats.total_weight_loaded
-        processed_imgs = self.app_stats.images_processed
-        weight_saved = self.app_stats.total_weight_saved
-        avg_weight_saved = 0
-        avg_process_rate = 0.0
-
-        if processed_imgs > 0:
-            avg_weight_saved = weight_saved / processed_imgs
-            avg_process_rate = processed_imgs / self.app_stats.processing_time
+        (loaded_imgs, loaded_weight, processed_imgs, weight_saved,
+         avg_weight_saved, avg_process_rate) = self._compute_stats()
 
         self.lbl_imgs_loaded = ttk.Label(self.pframe_middle,
                                          text=f"{i18n._('Loaded images')}: {loaded_imgs}")
 
-        self.lbl_imgs_loaded = ttk.Label(
+        self.lbl_loaded_weight = ttk.Label(
             self.pframe_middle,
             text=f"{i18n._('Total loaded weight')}: {human(loaded_weight)}")
 
@@ -150,7 +150,7 @@ class AboutWindow:
         self.assin_lbl.pack()
 
         self.lbl_imgs_loaded.pack()
-        self.lbl_imgs_loaded.pack()
+        self.lbl_loaded_weight.pack()
         self.lbl_processed_imgs.pack()
         self.lbl_weight_saved.pack()
         self.lbl_avg_weight_saved.pack()
@@ -164,6 +164,43 @@ class AboutWindow:
 
         self.pframe_top.focus()
         self.popupRoot.bind("<Command-w>", self.close_window)
+
+    def _compute_stats(self):
+        loaded_imgs = self.app_stats.images_loaded
+        loaded_weight = self.app_stats.total_weight_loaded
+        processed_imgs = self.app_stats.images_processed
+        weight_saved = self.app_stats.total_weight_saved
+        avg_weight_saved = 0
+        avg_process_rate = 0.0
+
+        if processed_imgs > 0:
+            avg_weight_saved = weight_saved / processed_imgs
+            avg_process_rate = processed_imgs / self.app_stats.processing_time
+
+        return (loaded_imgs, loaded_weight, processed_imgs, weight_saved,
+               avg_weight_saved, avg_process_rate)
+
+    def refresh_language(self):
+        """Refresh all UI text to reflect the current language."""
+        self.app_lbl.config(text=APP_NAME())
+        self.assin_lbl.config(
+            text=i18n._("Saving space and making\nwebsites faster since 2018.\n\n"))
+
+        (loaded_imgs, loaded_weight, processed_imgs, weight_saved,
+         avg_weight_saved, avg_process_rate) = self._compute_stats()
+
+        self.lbl_imgs_loaded.config(text=f"{i18n._('Loaded images')}: {loaded_imgs}")
+        self.lbl_loaded_weight.config(
+            text=f"{i18n._('Total loaded weight')}: {human(loaded_weight)}")
+        self.lbl_processed_imgs.config(
+            text=f"{i18n._('Optimized images')}: {processed_imgs}")
+        self.lbl_weight_saved.config(
+            text=f"{i18n._('Total saved space')}: {human(weight_saved)}")
+        self.lbl_avg_weight_saved.config(
+            text=f"{i18n._('Avg. weight reduction')}: {human(avg_weight_saved)}/f")
+        self.lbl_avg_process_rate.config(
+            text=f"{i18n._('Avg. processing rate')}: {avg_process_rate:.1f} f/s")
+        self.license_lbl.config(text=APP_LICENSE())
 
     @staticmethod
     def close_window(event):

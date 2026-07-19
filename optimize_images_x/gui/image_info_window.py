@@ -85,7 +85,7 @@ class ImageInfoWindow:
         self.info = read_image_info(filepath)
 
         self.window = tk.Toplevel(master)
-        self.window.title(f'Image info — {self.info.filename}')
+        self.window.title(f'{i18n._("Image Info")} — {self.info.filename}')
         self.window.protocol('WM_DELETE_WINDOW', self.close)
         if platform.system() == 'Darwin':
             self.window.bind('<Command-w>', self.close)
@@ -171,9 +171,9 @@ class ImageInfoWindow:
         fill.place(relx=0, rely=0, relheight=1,
                    relwidth=min(max(final_ratio, 0.0), 1.0))
         track.pack(anchor='w')
-        caption = (f'{human(self.task.final_filesize)} of '
+        caption = (f'{human(self.task.final_filesize)} {i18n._("of")} '
                    f'{human(self.task.original_filesize)} · '
-                   f'{self.task.percent_saved:.1f}% smaller')
+                   f'{self.task.percent_saved:.1f}% {i18n._("smaller")}')
         ttk.Label(frame, text=caption, foreground=self.muted_color) \
             .pack(anchor='w', pady=(3, 0))
         return frame
@@ -203,7 +203,7 @@ class ImageInfoWindow:
                               f'({self.task.percent_saved:.1f}%)'),
         }
         if self.task.was_downsized:
-            rows[i18n._('Downsized')] = 'yes'
+            rows[i18n._('Downsized')] = i18n._('yes')
         if self.task.was_converted:
             rows[i18n._('Converted')] = f'{self.task.orig_format} \u2192 ' \
                                         f'{self.task.result_format}'

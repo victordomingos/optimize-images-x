@@ -87,9 +87,6 @@ class App(BaseApp):
         self.master.minsize(MAIN_MIN_WIDTH, MAIN_MIN_HEIGHT)
         self.master.maxsize(MAIN_MAX_WIDTH, MAIN_MAX_HEIGHT)
 
-        self.menu = tk.Menu(self.master)
-        self.file_menu = tk.Menu(self.menu, postcommand=None)
-
         self.generate_menu()
         self.generate_toolbar()
         self.mount_table()
@@ -201,9 +198,11 @@ class App(BaseApp):
 
         self.tree.column('icon', anchor='w', minwidth=30, stretch=0, width=30)
         self.tree.column('file', minwidth=150, stretch=1, width=200)
-        self.tree.column('original_size', anchor='e', minwidth=90, stretch=0, width=90)
-        self.tree.column('new_size', anchor='e', minwidth=90, stretch=0, width=90)
-        self.tree.column('percent_saved', anchor='e', minwidth=60, stretch=0, width=70)
+        # Wide enough for the longer translated headings too (e.g. pt's
+        # "Tamanho Original", "Novo Tamanho"), not just the English ones.
+        self.tree.column('original_size', anchor='e', minwidth=100, stretch=0, width=130)
+        self.tree.column('new_size', anchor='e', minwidth=90, stretch=0, width=120)
+        self.tree.column('percent_saved', anchor='e', minwidth=70, stretch=0, width=90)
 
         self.tree["displaycolumns"] = ('icon', 'file', 'original_size',
                                        'new_size', 'percent_saved')
@@ -317,7 +316,34 @@ class App(BaseApp):
         self.app_status.is_settings_window_open = False
         self.app_status.settings_window.destroy()
 
+    def create_about_window(self, *event):
+        """Open the About window, or raise it if already open."""
+        existing = getattr(self, 'about_window', None)
+        if existing is not None and existing.popupRoot.winfo_exists():
+            existing.popupRoot.lift()
+        else:
+            self.about_window = AboutWindow(self.app_stats)
+
+    def create_thanks_window(self, *event):
+        """Open the Credits & Thanks window, or raise it if already open."""
+        existing = getattr(self, 'thanks_window', None)
+        if existing is not None and existing.thanksRoot.winfo_exists():
+            existing.thanksRoot.lift()
+        else:
+            self.thanks_window = ThanksWindow()
+
     def generate_menu(self):
+        # Rebuilt from scratch on every call (including language switches via
+        # refresh_language()): destroying the previous top-level menu also
+        # destroys its cascaded children (file_menu, window/tools menu, help
+        # menu), since they were created with it as their parent. Re-using
+        # the old widgets and only re-adding entries would instead pile up
+        # duplicate menu items on each switch.
+        if hasattr(self, 'menu'):
+            self.menu.destroy()
+        self.menu = tk.Menu(self.master)
+        self.file_menu = tk.Menu(self.menu, postcommand=None)
+
         self.master.config(menu=self.menu)
 
         self.menu.add_cascade(label=i18n._("File"), menu=self.file_menu)
@@ -368,8 +394,9 @@ class App(BaseApp):
         self.helpmenu = tk.Menu(self.menu)
         self.menu.add_cascade(label=i18n._("Help"), menu=self.helpmenu)
         self.helpmenu.add_command(label=i18n._("About ") + APP_NAME(),
-                                  command=lambda: AboutWindow(self.app_stats))
-        self.helpmenu.add_command(label=i18n._("Credits & Thanks"), command=ThanksWindow)
+                                  command=self.create_about_window)
+        self.helpmenu.add_command(label=i18n._("Credits & Thanks"),
+                                  command=self.create_thanks_window)
         self.helpmenu.add_separator()
 
         url = "https://no-title.victordomingos.com?s=oix"
@@ -377,8 +404,7 @@ class App(BaseApp):
         self.helpmenu.add_command(label=i18n._("Visit the developer's website"),
                                   command=web_command)
 
-        self.master.createcommand('tkAboutDialog',
-                                  lambda: AboutWindow(self.app_stats))
+        self.master.createcommand('tkAboutDialog', self.create_about_window)
 
     def update_img_list(self):
         """ Update the image list. """
@@ -1022,3 +1048,11 @@ class App(BaseApp):
 
         if hasattr(self, 'settings_window') and self.settings_window is not None:
             self.settings_window.refresh_language()
+
+        about_window = getattr(self, 'about_window', None)
+        if about_window is not None and about_window.popupRoot.winfo_exists():
+            about_window.refresh_language()
+
+        thanks_window = getattr(self, 'thanks_window', None)
+        if thanks_window is not None and thanks_window.thanksRoot.winfo_exists():
+            thanks_window.refresh_language()

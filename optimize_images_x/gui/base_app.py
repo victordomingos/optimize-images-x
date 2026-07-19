@@ -237,16 +237,20 @@ class BaseApp(ttk.Frame):
         self.update_idletasks()
 
     def configure_tree(self):
-        _col_keys = {
+        # Literal i18n._(...) calls, one per column: Babel's extractor only
+        # picks up calls with a string-literal argument, so translating a
+        # variable looked up from this dict (as done previously) leaves the
+        # non-empty ones invisible to extract_messages no matter how often
+        # it's re-run.
+        _col_labels = {
             'icon': '',
-            'file': 'File',
-            'original_size': 'Original Size',
-            'new_size': 'New Size',
-            'percent_saved': '% Saved',
+            'file': i18n._('File'),
+            'original_size': i18n._('Original Size'),
+            'new_size': i18n._('New Size'),
+            'percent_saved': i18n._('% Saved'),
         }
         for col in self.tree['columns']:
-            key = _col_keys.get(col, col.title())
-            heading_text = '' if not key else i18n._(key)
+            heading_text = _col_labels.get(col, col.title())
             self.tree.heading(
                 col, text=heading_text,
                 # Sort by column by clicking on header: not sorting here,

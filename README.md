@@ -180,7 +180,15 @@ so on. Also, at the time of writing, PyInstaller does not yet support Python
 standard, GIL-enabled Python 3.14). This does not affect which Python you use
 for everyday development; it only matters for the build.
 
-It is a good idea to use a dedicated virtual environment for building:
+On macOS or Linux, `./build.sh` runs the whole process for you (creating the
+virtual environment, installing dependencies, and invoking PyInstaller). It
+also checks that the Python it's about to use actually has Tcl/Tk support
+before building — see the note below on why that matters. If you have more
+than one Python 3.14 installed and need a specific one, run it as
+`PYTHON=/path/to/python3.14 ./build.sh`.
+
+To do it by hand instead, it is a good idea to use a dedicated virtual
+environment for building:
 
 ```
 python3.14 -m venv venv-build
@@ -192,17 +200,99 @@ python -m PyInstaller optimize-images-x.spec
 ```
 
 On Windows, activate the environment with `venv-build\Scripts\activate`
-instead.
+instead (there's no `build.sh` equivalent for Windows yet, so use the manual
+steps there).
+
+If your system has more than one Python 3.14 around (for example Homebrew's
+`python@3.14` alongside the official python.org build), make sure the one you
+build with actually includes Tcl/Tk. A Python without it will let the build
+finish, but PyInstaller will silently exclude `tkinter` from the app, and the
+resulting app will crash immediately on launch. `python3.14 -c "import
+tkinter"` should run without errors before you build.
 
 The result is placed in the `dist` folder: on macOS you get
 `dist/Optimize Images X.app`, and on Windows and Linux you get a folder
 containing the executable. The `build` and `dist` folders are build artifacts
 and are not meant to be committed to the repository.
 
+The standalone build bundles the compiled translation catalogs, so the
+available languages (see Preferences) work the same way in the standalone app
+as when running from source. You don't need to install anything extra for
+this — Babel, which is only used to compile those catalogs, is fetched
+automatically as a build-time dependency (declared in `pyproject.toml`) and is
+not part of the app itself.
+
 The application currently ships without a custom icon; you can add one by
 editing the `icon` entries near the top of `optimize-images-x.spec` (use a
 `.icns` file on macOS and a `.ico` file on Windows).
 
+
+## Adding a new language
+
+Optimize Images X uses Python's `gettext` for translations, with
+[Babel](https://babel.pocoo.org) handling the extraction/compilation
+tooling. Currently only Portuguese (`pt`) has a complete translation
+alongside the English source strings.
+
+**Prerequisites** (not needed to just run the app, only for translation work):
+
+- Babel: `pip install -e .[dev]` (it's a build-time dependency, not installed
+  by a normal `pip install`).
+- The GNU gettext command-line tools (`msginit`, `msgmerge`) — on macOS,
+  `brew install gettext`; on Linux they're usually already available or a
+  single package away (e.g. `apt install gettext`).
+
+**Steps to add a language** (example for Spanish, `es`):
+
+1. Make sure the extraction template is current:
+   ```
+   python setup.py extract_messages
+   ```
+   This (re)writes `optimize_images_x/locale/optimize_images_x.pot` with
+   every translatable string found in the source.
+
+2. Create the language's folder and a starter `.po` file from that template:
+   ```
+   mkdir -p optimize_images_x/locale/es/LC_MESSAGES
+   msginit -i optimize_images_x/locale/optimize_images_x.pot \
+           -l es \
+           -o optimize_images_x/locale/es/LC_MESSAGES/optimize_images_x.po \
+           --no-translator
+   ```
+   (`--no-translator` skips `msginit`'s translator/team lookup, which
+   otherwise reads your terminal and reaches out to translationproject.org —
+   harmless, but unnecessary here.)
+
+3. Translate it: open the new `.po` file and fill in each `msgstr` with the
+   translation of the `msgid` above it (leave the `msgid` lines untouched).
+   Any text editor works, or a dedicated tool like
+   [Poedit](https://poedit.net).
+
+4. Compile the translation to the binary format the app actually reads:
+   ```
+   python setup.py compile_catalog
+   ```
+   This regenerates `optimize_images_x/locale/es/LC_MESSAGES/optimize_images_x.mo`
+   from the `.po`. The app won't pick up any `.po` edits until this is run.
+
+5. Add a display name for the new language in
+   `optimize_images_x/gui/settings_window.py`, in the `lang_display`
+   dictionary (search for `'pt': 'Português'`) — for example, add
+   `'es': 'Español'`. The language *code* itself is picked up automatically
+   from the `locale/` folder; this dictionary only controls what name shows
+   up in the Preferences language dropdown (without an entry, it would still
+   work, just showing the raw code `es` instead of `Español`).
+
+6. Run the app (`python -m optimize_images_x`) and switch to the new
+   language in the `More…` tab of Preferences to check it.
+
+Once a language exists, use `./update-translations.sh` afterwards instead of
+repeating steps 1–4 by hand — it re-extracts the template, merges any new or
+changed strings into every existing `.po` (keeping what's already
+translated), and recompiles all of them in one go. It's the right tool after
+adding new translatable strings to the source or hand-editing a `.po`, but
+not for creating the very first `.po` for a new language (that's `msginit`,
+step 2 above, done once per language).
 
 ## Did you find a bug or do you have a suggestion?
 

@@ -45,7 +45,7 @@ class SettingsWindow(ttk.Frame):
         self.master.minsize(640, 360)
         # self.master.maxsize(W_DETALHE_CONTACTO_MAX_WIDTH, W_DETALHE_CONTACTO_MAX_HEIGHT)
 
-        self.master.title("Preferences")
+        self.master.title(i18n._('Settings'))
 
         # self.dicas = Pmw.Balloon(self.master, label_background='#f6f6f6',
         #                          hull_highlightbackground='#b3b3b3',
@@ -740,6 +740,40 @@ class SettingsWindow(ttk.Frame):
         self.lbl_language.config(text=i18n._('Language:'))
         self.btn_reset_all.config(text=i18n._('Reset all settings'))
 
+        # Re-fit the window to the current tab: translated labels can be
+        # longer or shorter than the source text, and the language selector
+        # lives on this same tab, so switching language here never goes
+        # through _on_tab_changed (only triggered by actually changing tabs).
+        # Widths change with the language, so the cached minimum is stale.
+        self._cached_min_width = None
+        self._resize_to_fit_current_tab()
+
+    def _resize_to_fit_current_tab(self):
+        self.note.update_idletasks()
+        tab = self.note.nametowidget(self.note.select())
+        self.master.minsize(500, 300)
+        self.master.state("normal")
+        self.note.configure(height=tab.winfo_reqheight(),
+                            width=max(tab.winfo_reqwidth(),
+                                     self._min_content_width()))
+
+    def _min_content_width(self):
+        """Widest tab's required width, cached: switching tabs should only
+        ever grow the window to fit, never shrink it back down for a
+        narrower tab. Invalidated on language change (see refresh_language),
+        since translated text length varies."""
+        if getattr(self, '_cached_min_width', None) is None:
+            current = self.note.select()
+            width = 0
+            for tab_id in self.note.tabs():
+                self.note.select(tab_id)
+                self.note.update_idletasks()
+                width = max(width, self.note.nametowidget(tab_id).winfo_reqwidth())
+            self.note.select(current)
+            self.note.update_idletasks()
+            self._cached_min_width = width
+        return self._cached_min_width
+
     def choose_color(self):
         color = askcolor(title=i18n._('Select background color'), parent=self)
         if not color or color[0] is None:
@@ -751,29 +785,7 @@ class SettingsWindow(ttk.Frame):
     def _on_tab_changed(self, event):
         if event.widget is not self.note:
             return  # not our notebook (defensive; see binding above)
-        w = event.widget  # get the current widget
-        w.update_idletasks()
-
-        tab = w.nametowidget(w.select())
-        tab_name = self.note.tab(self.note.select(), "text")
-        if tab_name == "PNG":
-            w.update_idletasks()
-            self.master.minsize(500, 300)
-            self.master.state("normal")
-            w.configure(height=tab.winfo_reqheight(),
-                        width=tab.winfo_reqwidth())
-        elif tab_name == "JPEG":
-            w.update_idletasks()
-            self.master.minsize(500, 300)
-            self.master.state("normal")
-            w.configure(height=tab.winfo_reqheight(),
-                        width=tab.winfo_reqwidth())
-        else:
-            self.master.minsize(500, 300)
-            w.update_idletasks()
-            self.master.state("normal")
-            w.configure(height=tab.winfo_reqheight(),
-                        width=tab.winfo_reqwidth())
+        self._resize_to_fit_current_tab()
 
     def _on_btn_close(self, event):
         """ will test for some condition before closing, save if necessary and

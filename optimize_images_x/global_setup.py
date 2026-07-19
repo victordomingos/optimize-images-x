@@ -35,29 +35,30 @@ DB_PATH = os.path.expanduser('~') + '/optimize_images_x_settings.sqlite'
 DEFAULT_PATH = os.path.expanduser('~')
 
 APP_PATH = 'xxx'
-_APP_NAME_STR = "Optimize Images X"
-_APP_LICENSE_STR = "MIT License"
-
-_CREDITS_STRS = [
-    "Optimize Images X was initially created by Victor Domingos and both "
-    "inspired and made possible by the work of many other developers, "
-    "including the makers of existing image processing utilities, Pillow, "
-    "as well as the direct contibutors to this project and to it's parent "
-    "application, Optimize Images (the CLI version).",
-    "\nIcon theme from https://feathericons.com, copyrighted under the MIT licence."
-]
 
 
 def APP_NAME():
-    return i18n._(_APP_NAME_STR)
+    return i18n._("Optimize Images X")
 
 
 def APP_LICENSE():
-    return i18n._(_APP_LICENSE_STR)
+    return i18n._("MIT License")
 
 
 def CREDITS():
-    return [i18n._(s) for s in _CREDITS_STRS]
+    # Literal i18n._(...) calls, not a loop over a module-level list: Babel's
+    # extractor only picks up calls with a string-literal argument (see the
+    # same fix in gui/base_app.py's configure_tree() for the grid headers).
+    return [
+        i18n._(
+            "Optimize Images X was initially created by Victor Domingos and both "
+            "inspired and made possible by the work of many other developers, "
+            "including the makers of existing image processing utilities, Pillow, "
+            "as well as the direct contibutors to this project and to it's parent "
+            "application, Optimize Images (the CLI version)."),
+        i18n._("\nIcon theme from https://feathericons.com, copyrighted under "
+              "the MIT licence."),
+    ]
 
 
 _ALL_EXT = ' '.join('.' + ext for ext in INPUT_FORMATS)

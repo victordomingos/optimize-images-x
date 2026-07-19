@@ -597,8 +597,10 @@ class SettingsWindow(ttk.Frame):
         lang_codes = ['en'] + [l for l in available_langs if l != 'en']
         lang_display = {
             'en': 'English',
+            'ca': 'Català',
             'es': 'Español',
             'fr': 'Français',
+            'mwl': 'Mirandés',
             'pt': 'Português',
         }
         lang_options = [lang_display.get(code, code) for code in lang_codes]

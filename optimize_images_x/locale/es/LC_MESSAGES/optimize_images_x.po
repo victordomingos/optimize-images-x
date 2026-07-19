@@ -1,0 +1,734 @@
+# Spanish translations for optimize-images-x.
+# Copyright (C) 2026 Victor Domingos
+# This file is distributed under the same license as the optimize-images-x
+# project.
+# Automatically generated, 2026.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: optimize-images-x 2.1.0\n"
+"Report-Msgid-Bugs-To: victordomingos@no-title.victordomingos.com\n"
+"POT-Creation-Date: 2026-07-20 00:24+0100\n"
+"PO-Revision-Date: 2026-07-20 00:24+0100\n"
+"Last-Translator: Automatically generated\n"
+"Language: es\n"
+"Language-Team: none\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Generated-By: Babel 2.18.0\n"
+
+#: optimize_images_x/global_setup.py:41 optimize_images_x/gui/main_window.py:76
+msgid "Optimize Images X"
+msgstr "Optimize Images X"
+
+#: optimize_images_x/global_setup.py:45
+msgid "MIT License"
+msgstr "Licencia MIT"
+
+#: optimize_images_x/global_setup.py:54
+msgid ""
+"Optimize Images X was initially created by Victor Domingos and both inspired"
+" and made possible by the work of many other developers, including the "
+"makers of existing image processing utilities, Pillow, as well as the direct"
+" contibutors to this project and to it's parent application, Optimize Images"
+" (the CLI version)."
+msgstr ""
+"Optimize Images X fue creado inicialmente por Victor Domingos, y tanto "
+"inspirado como hecho posible gracias al trabajo de muchos otros "
+"desarrolladores, incluyendo a los creadores de las utilidades de "
+"procesamiento de imágenes ya existentes, Pillow, así como a los "
+"colaboradores directos de este proyecto y de su aplicación original, "
+"Optimize Images (la versión de línea de comandos)."
+
+#: optimize_images_x/global_setup.py:59
+msgid ""
+"\n"
+"Icon theme from https://feathericons.com, copyrighted under the MIT licence."
+msgstr ""
+"\n"
+"Tema de iconos de https://feathericons.com, protegido por derechos de autor "
+"bajo la licencia MIT."
+
+#: optimize_images_x/image_info.py:24
+msgid "Image"
+msgstr "Imagen"
+
+#: optimize_images_x/image_info.py:24
+msgid "Camera"
+msgstr "Cámara"
+
+#: optimize_images_x/image_info.py:25
+msgid "GPS"
+msgstr "GPS"
+
+#: optimize_images_x/gui/image_info_window.py:206
+#: optimize_images_x/image_info.py:51
+msgid "yes"
+msgstr "sí"
+
+#: optimize_images_x/image_info.py:51
+msgid "no"
+msgstr "no"
+
+#: optimize_images_x/image_info.py:53
+msgid "Format"
+msgstr "Formato"
+
+#: optimize_images_x/image_info.py:53
+msgid "Unknown"
+msgstr "Desconocido"
+
+#: optimize_images_x/image_info.py:54
+msgid "Mode"
+msgstr "Modo"
+
+#: optimize_images_x/image_info.py:55
+msgid "Dimensions"
+msgstr "Dimensiones"
+
+#: optimize_images_x/image_info.py:56
+msgid "Alpha"
+msgstr "Alfa"
+
+#: optimize_images_x/image_info.py:59
+msgid "Palette colors"
+msgstr "Colores de la paleta"
+
+#: optimize_images_x/image_info.py:61
+msgid "Progressive"
+msgstr "Progresivo"
+
+#: optimize_images_x/image_info.py:63
+msgid "Interlaced"
+msgstr "Entrelazado"
+
+#: optimize_images_x/image_info.py:64
+msgid "Frames"
+msgstr "Fotogramas"
+
+#: optimize_images_x/image_info.py:65
+msgid "animated"
+msgstr "animado"
+
+#: optimize_images_x/image_info.py:68
+msgid "DPI"
+msgstr "DPI"
+
+#: optimize_images_x/image_info.py:70
+msgid "ICC profile"
+msgstr "Perfil ICC"
+
+#: optimize_images_x/image_info.py:77
+msgid "Created"
+msgstr "Creado"
+
+#: optimize_images_x/image_info.py:78
+msgid "Modified"
+msgstr "Modificado"
+
+#: optimize_images_x/gui/about_window.py:19
+#: optimize_images_x/gui/about_window.py:53
+msgid "Special thanks"
+msgstr "Agradecimientos especiales"
+
+#: optimize_images_x/gui/about_window.py:45
+#: optimize_images_x/gui/about_window.py:57
+msgid "Thanks!"
+msgstr "¡Gracias!"
+
+#: optimize_images_x/gui/about_window.py:108
+#: optimize_images_x/gui/about_window.py:187
+msgid ""
+"Saving space and making\n"
+"websites faster since 2018.\n"
+"\n"
+msgstr ""
+"Ahorrando espacio y haciendo\n"
+"que los sitios web sean más rápidos desde 2018.\n"
+"\n"
+
+#: optimize_images_x/gui/about_window.py:120
+#: optimize_images_x/gui/about_window.py:192
+msgid "Loaded images"
+msgstr "Imágenes cargadas"
+
+#: optimize_images_x/gui/about_window.py:124
+#: optimize_images_x/gui/about_window.py:194
+msgid "Total loaded weight"
+msgstr "Peso total cargado"
+
+#: optimize_images_x/gui/about_window.py:128
+#: optimize_images_x/gui/about_window.py:196
+msgid "Optimized images"
+msgstr "Imágenes optimizadas"
+
+#: optimize_images_x/gui/about_window.py:132
+#: optimize_images_x/gui/about_window.py:198
+msgid "Total saved space"
+msgstr "Espacio total ahorrado"
+
+#: optimize_images_x/gui/about_window.py:136
+#: optimize_images_x/gui/about_window.py:200
+msgid "Avg. weight reduction"
+msgstr "Reducción media de peso"
+
+#: optimize_images_x/gui/about_window.py:140
+#: optimize_images_x/gui/about_window.py:202
+msgid "Avg. processing rate"
+msgstr "Velocidad media de procesamiento"
+
+#: optimize_images_x/gui/base_app.py:247 optimize_images_x/gui/main_window.py:349
+msgid "File"
+msgstr "Archivo"
+
+#: optimize_images_x/gui/base_app.py:248
+msgid "Original Size"
+msgstr "Tamaño Original"
+
+#: optimize_images_x/gui/base_app.py:249
+msgid "New Size"
+msgstr "Nuevo Tamaño"
+
+#: optimize_images_x/gui/base_app.py:250
+msgid "% Saved"
+msgstr "% Ahorrado"
+
+#: optimize_images_x/gui/image_info_window.py:88
+msgid "Image Info"
+msgstr "Información de la Imagen"
+
+#: optimize_images_x/gui/image_info_window.py:117
+msgid "Double-click to open the image"
+msgstr "Haga doble clic para abrir la imagen"
+
+#: optimize_images_x/gui/image_info_window.py:155
+msgid "(no preview)"
+msgstr "(sin vista previa)"
+
+#: optimize_images_x/gui/image_info_window.py:174
+#: optimize_images_x/gui/main_window.py:997
+msgid "of"
+msgstr "de"
+
+#: optimize_images_x/gui/image_info_window.py:176
+msgid "smaller"
+msgstr "más pequeño"
+
+#: optimize_images_x/gui/image_info_window.py:190
+msgid "Optimization"
+msgstr "Optimización"
+
+#: optimize_images_x/gui/image_info_window.py:192
+msgid "Image properties"
+msgstr "Propiedades de la imagen"
+
+#: optimize_images_x/gui/image_info_window.py:200
+msgid "Original size"
+msgstr "Tamaño original"
+
+#: optimize_images_x/gui/image_info_window.py:201
+msgid "Final size"
+msgstr "Tamaño final"
+
+#: optimize_images_x/gui/image_info_window.py:202
+#: optimize_images_x/gui/main_window.py:981
+#: optimize_images_x/gui/main_window.py:997
+msgid "Saved"
+msgstr "Ahorrado"
+
+#: optimize_images_x/gui/image_info_window.py:206
+msgid "Downsized"
+msgstr "Redimensionado"
+
+#: optimize_images_x/gui/image_info_window.py:208
+msgid "Converted"
+msgstr "Convertido"
+
+#: optimize_images_x/gui/image_info_window.py:245
+msgid "EXIF"
+msgstr "EXIF"
+
+#: optimize_images_x/gui/image_info_window.py:248
+msgid "This image has no EXIF metadata."
+msgstr "Esta imagen no tiene metadatos EXIF."
+
+#: optimize_images_x/gui/image_info_window.py:256
+msgid "Property"
+msgstr "Propiedad"
+
+#: optimize_images_x/gui/image_info_window.py:257
+msgid "Value"
+msgstr "Valor"
+
+#: optimize_images_x/gui/main_window.py:181
+msgid "Image info"
+msgstr "Información de la imagen"
+
+#: optimize_images_x/gui/main_window.py:230
+msgid "Add files…"
+msgstr "Añadir archivos…"
+
+#: optimize_images_x/gui/main_window.py:240
+msgid "Add folder…"
+msgstr "Añadir carpeta…"
+
+#: optimize_images_x/gui/main_window.py:250
+msgid "Clear list"
+msgstr "Vaciar lista"
+
+#: optimize_images_x/gui/main_window.py:260
+#: optimize_images_x/gui/main_window.py:589
+msgid "Watch folder…"
+msgstr "Vigilar carpeta…"
+
+#: optimize_images_x/gui/main_window.py:270
+#: optimize_images_x/gui/main_window.py:390
+#: optimize_images_x/gui/settings_window.py:48
+#: optimize_images_x/gui/settings_window.py:676
+msgid "Settings"
+msgstr "Configuración"
+
+#: optimize_images_x/gui/main_window.py:285
+msgid "Add image files to the list"
+msgstr "Añadir archivos de imagen a la lista"
+
+#: optimize_images_x/gui/main_window.py:286
+msgid "Add all images from a folder"
+msgstr "Añadir todas las imágenes de una carpeta"
+
+#: optimize_images_x/gui/main_window.py:287
+msgid "Remove every item from the list"
+msgstr "Eliminar todos los elementos de la lista"
+
+#: optimize_images_x/gui/main_window.py:289
+msgid "Watch a folder and optimize new images automatically"
+msgstr "Vigilar una carpeta y optimizar automáticamente las imágenes nuevas"
+
+#: optimize_images_x/gui/main_window.py:290
+msgid "Open settings"
+msgstr "Abrir configuración"
+
+#: optimize_images_x/gui/main_window.py:351
+msgid "Select files to process…"
+msgstr "Seleccionar archivos a procesar…"
+
+#: optimize_images_x/gui/main_window.py:355
+msgid "Select folder to process…"
+msgstr "Seleccionar carpeta a procesar…"
+
+#: optimize_images_x/gui/main_window.py:360
+msgid "Watch a folder for new files…"
+msgstr "Vigilar una carpeta en busca de archivos nuevos…"
+
+#: optimize_images_x/gui/main_window.py:365
+msgid "Open image"
+msgstr "Abrir imagen"
+
+#: optimize_images_x/gui/main_window.py:369
+msgid "Quick Look Preview"
+msgstr "Vista previa Quick Look"
+
+#: optimize_images_x/gui/main_window.py:373
+msgid "Show image info"
+msgstr "Mostrar información de la imagen"
+
+#: optimize_images_x/gui/main_window.py:383
+msgid "Window"
+msgstr "Ventana"
+
+#: optimize_images_x/gui/main_window.py:389
+msgid "Tools"
+msgstr "Herramientas"
+
+#: optimize_images_x/gui/main_window.py:395
+msgid "Help"
+msgstr "Ayuda"
+
+#: optimize_images_x/gui/main_window.py:396
+msgid "About "
+msgstr "Acerca de "
+
+#: optimize_images_x/gui/main_window.py:398
+msgid "Credits & Thanks"
+msgstr "Créditos y agradecimientos"
+
+#: optimize_images_x/gui/main_window.py:404
+msgid "Visit the developer's website"
+msgstr "Visitar el sitio web del desarrollador"
+
+#: optimize_images_x/gui/main_window.py:436
+msgid "Choose file(s)"
+msgstr "Elegir archivo(s)"
+
+#: optimize_images_x/gui/main_window.py:461
+#: optimize_images_x/gui/main_window.py:489
+msgid "Choose folder"
+msgstr "Elegir carpeta"
+
+#: optimize_images_x/gui/main_window.py:500
+msgid "Stop watching"
+msgstr "Dejar de vigilar"
+
+#: optimize_images_x/gui/main_window.py:503
+msgid "Started watching folder for new files."
+msgstr "Se ha iniciado la vigilancia de la carpeta en busca de archivos nuevos."
+
+#: optimize_images_x/gui/main_window.py:593
+msgid "Stopped watching folder."
+msgstr "Se ha detenido la vigilancia de la carpeta."
+
+#: optimize_images_x/gui/main_window.py:678
+msgid "Drag and drop images or folders here"
+msgstr "Arrastre y suelte imágenes o carpetas aquí"
+
+#: optimize_images_x/gui/main_window.py:681
+msgid "or use Add files/Add folder above"
+msgstr "o use Añadir archivos/Añadir carpeta arriba"
+
+#: optimize_images_x/gui/main_window.py:820
+#: optimize_images_x/gui/main_window.py:831
+msgid "Drag and drop"
+msgstr "Arrastrar y soltar"
+
+#: optimize_images_x/gui/main_window.py:821
+msgid ""
+"The dropped images will be optimized in place, replacing the original files "
+"(always work on copies). Dropped folders are scanned according to your "
+"\"Recurse through subfolders\" setting.\n"
+"\n"
+"Do you want to proceed?"
+msgstr ""
+"Las imágenes soltadas se optimizarán en el mismo lugar, reemplazando los "
+"archivos originales (trabaje siempre sobre copias). Las carpetas soltadas se"
+" analizan según su configuración de «Recorrer subcarpetas».\n"
+"\n"
+"¿Desea continuar?"
+
+#: optimize_images_x/gui/main_window.py:832
+msgid "Do you want to see this warning next time?"
+msgstr "¿Desea ver esta advertencia la próxima vez?"
+
+#: optimize_images_x/gui/main_window.py:843
+msgid ""
+"Add image files or folders to start optimizing. Original files will be "
+"replaced (always work on copies)."
+msgstr ""
+"Añada archivos de imagen o carpetas para empezar a optimizar. Los archivos "
+"originales se reemplazarán (trabaje siempre sobre copias)."
+
+#: optimize_images_x/gui/main_window.py:914
+msgid "Error"
+msgstr "Error"
+
+#: optimize_images_x/gui/main_window.py:982
+msgid "files"
+msgstr "archivos"
+
+#: optimize_images_x/gui/main_window.py:982
+msgid "total"
+msgstr "total"
+
+#: optimize_images_x/gui/main_window.py:986
+msgid "No files were changed."
+msgstr "No se modificó ningún archivo."
+
+#: optimize_images_x/gui/main_window.py:996
+msgid "Optimized"
+msgstr "Optimizado"
+
+#: optimize_images_x/gui/main_window.py:996
+msgid "images"
+msgstr "imágenes"
+
+#: optimize_images_x/gui/main_window.py:997
+msgid "avg."
+msgstr "prom."
+
+#: optimize_images_x/gui/main_window.py:997
+msgid "per file"
+msgstr "por archivo"
+
+#: optimize_images_x/gui/main_window.py:1003
+msgid ""
+"Please notice that all image optimizations are applied destructivelly to the"
+" provided files. Always work on copies, not on original image files.\n"
+"\n"
+"Do you want to receive this warning next time?"
+msgstr ""
+"Tenga en cuenta que todas las optimizaciones de imagen se aplican de forma "
+"destructiva a los archivos proporcionados. Trabaje siempre sobre copias, "
+"nunca sobre los archivos de imagen originales.\n"
+"\n"
+"¿Desea recibir este aviso la próxima vez?"
+
+#: optimize_images_x/gui/main_window.py:1008
+msgid "Welcome to Optimize Images!"
+msgstr "¡Bienvenido a Optimize Images!"
+
+#: optimize_images_x/gui/main_window.py:1017
+msgid ""
+"Optimize Images will enter into Listening Mode, and watch the selected "
+"folder for any new image files being created until you press \"Stop\". After"
+" that moment, if a new image file is created, it will be immediately "
+"processed.\n"
+"\n"
+"Do you want to receive this information next time?"
+msgstr ""
+"Optimize Images entrará en modo de escucha y vigilará la carpeta "
+"seleccionada en busca de cualquier archivo de imagen nuevo que se cree hasta"
+" que pulse \"Detener\". A partir de ese momento, si se crea un nuevo archivo"
+" de imagen, se procesará de inmediato.\n"
+"\n"
+"¿Desea recibir esta información la próxima vez?"
+
+#: optimize_images_x/gui/main_window.py:1023
+msgid "Watching a folder for new image files"
+msgstr "Vigilando una carpeta en busca de nuevos archivos de imagen"
+
+#: optimize_images_x/gui/settings_window.py:102
+#: optimize_images_x/gui/settings_window.py:679
+msgid "General"
+msgstr "General"
+
+#: optimize_images_x/gui/settings_window.py:103
+#: optimize_images_x/gui/settings_window.py:681
+msgid "Conversion"
+msgstr "Conversión"
+
+#: optimize_images_x/gui/settings_window.py:124
+msgid "More…"
+msgstr "Más…"
+
+#: optimize_images_x/gui/settings_window.py:230
+#: optimize_images_x/gui/settings_window.py:687
+msgid "Image size reduction"
+msgstr "Reducción del tamaño de la imagen"
+
+#: optimize_images_x/gui/settings_window.py:234
+#: optimize_images_x/gui/settings_window.py:688
+msgid "Global options"
+msgstr "Opciones globales"
+
+#: optimize_images_x/gui/settings_window.py:238
+#: optimize_images_x/gui/settings_window.py:689
+msgid "Keep original size"
+msgstr "Mantener tamaño original"
+
+#: optimize_images_x/gui/settings_window.py:242
+#: optimize_images_x/gui/settings_window.py:690
+msgid "Downsize image to fit:"
+msgstr "Redimensionar imagen para ajustar:"
+
+#: optimize_images_x/gui/settings_window.py:246
+#: optimize_images_x/gui/settings_window.py:691
+msgid "Max width:"
+msgstr "Ancho máximo:"
+
+#: optimize_images_x/gui/settings_window.py:254
+#: optimize_images_x/gui/settings_window.py:692
+msgid "Max height:"
+msgstr "Altura máxima:"
+
+#: optimize_images_x/gui/settings_window.py:258
+#: optimize_images_x/gui/settings_window.py:693
+msgid "label2"
+msgstr "label2"
+
+#: optimize_images_x/gui/settings_window.py:269
+#: optimize_images_x/gui/settings_window.py:694
+msgid "Recurse through subfolders"
+msgstr "Recorrer subcarpetas"
+
+#: optimize_images_x/gui/settings_window.py:273
+#: optimize_images_x/gui/settings_window.py:695
+msgid "Fast mode"
+msgstr "Modo rápido"
+
+#: optimize_images_x/gui/settings_window.py:277
+#: optimize_images_x/gui/settings_window.py:696
+msgid "Convert to grayscale"
+msgstr "Convertir a escala de grises"
+
+#: optimize_images_x/gui/settings_window.py:281
+#: optimize_images_x/gui/settings_window.py:697
+msgid "No file size comparison"
+msgstr "Sin comparación de tamaño de archivo"
+
+#: optimize_images_x/gui/settings_window.py:285
+#: optimize_images_x/gui/settings_window.py:698
+msgid "Keep EXIF metadata"
+msgstr "Mantener metadatos EXIF"
+
+#: optimize_images_x/gui/settings_window.py:289
+#: optimize_images_x/gui/settings_window.py:700
+msgid "Enable drag-and-drop"
+msgstr "Activar arrastrar y soltar"
+
+#: optimize_images_x/gui/settings_window.py:292
+#: optimize_images_x/gui/settings_window.py:703
+msgid "Enable drag-and-drop (requires tkinterdnd2)"
+msgstr "Activar arrastrar y soltar (requiere tkinterdnd2)"
+
+#: optimize_images_x/gui/settings_window.py:301
+#: optimize_images_x/gui/settings_window.py:704
+msgid "Simultaneous jobs:"
+msgstr "Tareas simultáneas:"
+
+#: optimize_images_x/gui/settings_window.py:310
+#: optimize_images_x/gui/settings_window.py:705
+msgid "Auto (based on CPU)"
+msgstr "Automático (basado en la CPU)"
+
+#: optimize_images_x/gui/settings_window.py:354
+#: optimize_images_x/gui/settings_window.py:708
+msgid "JPEG Quality"
+msgstr "Calidad JPEG"
+
+#: optimize_images_x/gui/settings_window.py:358
+#: optimize_images_x/gui/settings_window.py:709
+msgid "Auto/Dynamic"
+msgstr "Automático/Dinámico"
+
+#: optimize_images_x/gui/settings_window.py:363
+#: optimize_images_x/gui/settings_window.py:710
+msgid "Fixed value:"
+msgstr "Valor fijo:"
+
+#: optimize_images_x/gui/settings_window.py:410
+#: optimize_images_x/gui/settings_window.py:713
+msgid "Convert images"
+msgstr "Convertir imágenes"
+
+#: optimize_images_x/gui/settings_window.py:414
+#: optimize_images_x/gui/settings_window.py:714
+msgid "No format conversion"
+msgstr "Sin conversión de formato"
+
+#: optimize_images_x/gui/settings_window.py:417
+#: optimize_images_x/gui/settings_window.py:715
+msgid "Convert big PNG photos only"
+msgstr "Convertir solo fotos PNG grandes"
+
+#: optimize_images_x/gui/settings_window.py:420
+#: optimize_images_x/gui/settings_window.py:716
+msgid "Convert all images"
+msgstr "Convertir todas las imágenes"
+
+#: optimize_images_x/gui/settings_window.py:424
+#: optimize_images_x/gui/settings_window.py:717
+msgid "Convert to:"
+msgstr "Convertir a:"
+
+#: optimize_images_x/gui/settings_window.py:434
+#: optimize_images_x/gui/settings_window.py:719
+msgid "Delete original file after conversion"
+msgstr "Eliminar archivo original tras la conversión"
+
+#: optimize_images_x/gui/settings_window.py:465
+#: optimize_images_x/gui/settings_window.py:722
+msgid "Color & transparency"
+msgstr "Color y transparencia"
+
+#: optimize_images_x/gui/settings_window.py:469
+#: optimize_images_x/gui/settings_window.py:723
+msgid "Auto (keep current colors)"
+msgstr "Automático (mantener colores actuales)"
+
+#: optimize_images_x/gui/settings_window.py:472
+#: optimize_images_x/gui/settings_window.py:725
+msgid "Reduce palette to max colors:"
+msgstr "Reducir paleta a un máximo de colores:"
+
+#: optimize_images_x/gui/settings_window.py:478
+#: optimize_images_x/gui/settings_window.py:726
+msgid "Remove transparency"
+msgstr "Eliminar transparencia"
+
+#: optimize_images_x/gui/settings_window.py:481
+#: optimize_images_x/gui/settings_window.py:727
+msgid "Set background color"
+msgstr "Definir color de fondo"
+
+#: optimize_images_x/gui/settings_window.py:505
+#: optimize_images_x/gui/settings_window.py:730
+msgid "WebP quality"
+msgstr "Calidad WebP"
+
+#: optimize_images_x/gui/settings_window.py:508
+#: optimize_images_x/gui/settings_window.py:731
+msgid "Other options"
+msgstr "Otras opciones"
+
+#: optimize_images_x/gui/settings_window.py:512
+#: optimize_images_x/gui/settings_window.py:732
+msgid "Lossy, quality:"
+msgstr "Con pérdida, calidad:"
+
+#: optimize_images_x/gui/settings_window.py:521
+#: optimize_images_x/gui/settings_window.py:733
+msgid "Lossless"
+msgstr "Sin pérdida"
+
+#: optimize_images_x/gui/settings_window.py:526
+#: optimize_images_x/gui/settings_window.py:735
+msgid "Compression method (0–6):"
+msgstr "Método de compresión (0–6):"
+
+#: optimize_images_x/gui/settings_window.py:574
+#: optimize_images_x/gui/settings_window.py:738
+msgid "User Interface"
+msgstr "Interfaz de usuario"
+
+#: optimize_images_x/gui/settings_window.py:578
+#: optimize_images_x/gui/settings_window.py:739
+msgid "Reset app defaults"
+msgstr "Restablecer valores predeterminados de la aplicación"
+
+#: optimize_images_x/gui/settings_window.py:590
+#: optimize_images_x/gui/settings_window.py:740
+msgid "Language:"
+msgstr "Idioma:"
+
+#: optimize_images_x/gui/settings_window.py:625
+#: optimize_images_x/gui/settings_window.py:741
+msgid "Reset all settings"
+msgstr "Restablecer toda la configuración"
+
+#: optimize_images_x/gui/settings_window.py:680
+msgid "JPEG"
+msgstr "JPEG"
+
+#: optimize_images_x/gui/settings_window.py:682
+msgid "PNG"
+msgstr "PNG"
+
+#: optimize_images_x/gui/settings_window.py:683
+msgid "WebP"
+msgstr "WebP"
+
+#: optimize_images_x/gui/settings_window.py:684
+msgid "More"
+msgstr "Más"
+
+#: optimize_images_x/gui/settings_window.py:778
+msgid "Select background color"
+msgstr "Seleccionar color de fondo"
+
+#: optimize_images_x/gui/settings_window.py:906
+msgid ""
+"Resetting all settings will reload all default settings and the application "
+"will be restarted immediately.\n"
+"\n"
+"Do you want to proceed?"
+msgstr ""
+"Restablecer toda la configuración recargará todos los valores "
+"predeterminados y la aplicación se reiniciará de inmediato.\n"
+"\n"
+"¿Desea continuar?"
+
+#: optimize_images_x/gui/settings_window.py:909
+msgid "Reset all settings and restart?"
+msgstr "¿Restablecer toda la configuración y reiniciar?"
+

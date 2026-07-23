@@ -231,8 +231,10 @@ editing the `icon` entries near the top of `optimize-images-x.spec` (use a
 
 Optimize Images X uses Python's `gettext` for translations, with
 [Babel](https://babel.pocoo.org) handling the extraction/compilation
-tooling. Currently only Portuguese (`pt`) has a complete translation
-alongside the English source strings.
+tooling. Alongside the English source strings, Portuguese (`pt`) has a
+complete hand-made translation; Catalan (`ca`), Spanish (`es`), French
+(`fr`) and Mirandese (`mwl`) were generated with the help of an LLM and may
+contain errors - corrections are very welcome.
 
 **Prerequisites** (not needed to just run the app, only for translation work):
 

@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Optimize Images X 2.1.0\n"
 "Report-Msgid-Bugs-To: victordomingos@no-title.victordomingos.com\n"
 "POT-Creation-Date: 2026-07-19 12:27+0100\n"
-"PO-Revision-Date: 2026-07-14 10:00+0000\n"
+"PO-Revision-Date: 2026-08-20 22:52+0100\n"
 "Last-Translator: Victor Domingos <victordomingos@no-"
 "title.victordomingos.com>\n"
 "Language-Team: Portuguese <victordomingos@no-title.victordomingos.com>\n"
@@ -17,6 +17,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.9\n"
 
 #: optimize_images_x/global_setup.py:41 optimize_images_x/gui/main_window.py:76
 msgid "Optimize Images X"
@@ -34,11 +35,11 @@ msgid ""
 "contibutors to this project and to it's parent application, Optimize Images "
 "(the CLI version)."
 msgstr ""
-"O Optimize Images X foi inicialmente criado por Victor Domingos e inspirado "
-"bem como tornado possível pelo trabalho de muitos outros programadores, "
-"incluindo os criadores dos utilitários existentes de processamento de "
-"imagens, do Pillow, tal como os contribuidores diretos deste projeto e da "
-"sua aplicação mãe, Optimize Images (a versão CLI)."
+"Optimize Images X foi inicialmente criado por Victor Domingos, inspirado e "
+"tornado possível pelo trabalho de muitos outros programadores, entre os "
+"quais os criadores de utilitários de processamento de imagens existentes, do "
+"Pillow, tal como os contribuidores diretos deste projeto e da sua aplicação "
+"mãe, Optimize Images (a versão CLI)."
 
 #: optimize_images_x/global_setup.py:59
 msgid ""
@@ -120,11 +121,11 @@ msgstr "Perfil ICC"
 
 #: optimize_images_x/image_info.py:77
 msgid "Created"
-msgstr "Criado"
+msgstr "Criada"
 
 #: optimize_images_x/image_info.py:78
 msgid "Modified"
-msgstr "Modificado"
+msgstr "Modificada"
 
 #: optimize_images_x/gui/about_window.py:19
 msgid "Special thanks"
@@ -141,7 +142,7 @@ msgid ""
 "\n"
 msgstr ""
 "A poupar espaço e a tornar\n"
-"os sites mais rápidos desde 2018.\n"
+"sites mais rápidos desde 2018.\n"
 "\n"
 
 #: optimize_images_x/gui/about_window.py:120
@@ -158,7 +159,7 @@ msgstr "Imagens otimizadas"
 
 #: optimize_images_x/gui/about_window.py:132
 msgid "Total saved space"
-msgstr "Espaço total economizado"
+msgstr "Espaço total poupado"
 
 #: optimize_images_x/gui/about_window.py:136
 msgid "Avg. weight reduction"
@@ -183,7 +184,7 @@ msgstr "Novo Tamanho"
 
 #: optimize_images_x/gui/base_app.py:250
 msgid "% Saved"
-msgstr "Poupança"
+msgstr "% Poupança"
 
 #: optimize_images_x/gui/image_info_window.py:88
 msgid "Image Info"
@@ -234,7 +235,7 @@ msgstr "Redimensionada"
 
 #: optimize_images_x/gui/image_info_window.py:208
 msgid "Converted"
-msgstr "Convertido"
+msgstr "Convertida"
 
 #: optimize_images_x/gui/image_info_window.py:245
 msgid "EXIF"
@@ -278,7 +279,7 @@ msgstr "Monitorizar pasta…"
 #: optimize_images_x/gui/settings_window.py:48
 #: optimize_images_x/gui/settings_window.py:676
 msgid "Settings"
-msgstr "Configurações"
+msgstr "Definições"
 
 #: optimize_images_x/gui/main_window.py:285
 msgid "Add image files to the list"
@@ -298,7 +299,7 @@ msgstr "Monitorizar uma pasta e otimizar novas imagens automaticamente"
 
 #: optimize_images_x/gui/main_window.py:290
 msgid "Open settings"
-msgstr "Abrir configurações"
+msgstr "Abrir definições"
 
 #: optimize_images_x/gui/main_window.py:335
 msgid "Select files to process…"
@@ -318,7 +319,7 @@ msgstr "Abrir imagem"
 
 #: optimize_images_x/gui/main_window.py:353
 msgid "Quick Look Preview"
-msgstr "Visualização Rápida"
+msgstr "Vista Rápida"
 
 #: optimize_images_x/gui/main_window.py:357
 msgid "Show image info"
@@ -466,9 +467,9 @@ msgid ""
 "\n"
 "Do you want to receive this information next time?"
 msgstr ""
-"O Optimize Images vai entrar em Modo de Escuta, e vigiar a pasta selecionada "
-"à procura de novos ficheiros de imagem criados até premir \"Parar\". A "
-"partir desse momento, se for criado um novo ficheiro de imagem, será "
+"O Optimize Images vai entrar em Modo de Escuta, e monitorizar a pasta "
+"selecionada por novos ficheiros de imagem até premir \"Parar\". A partir "
+"desse momento, se for adicionado um novo ficheiro de imagem, será "
 "imediatamente processado.\n"
 "\n"
 "Deseja receber esta informação da próxima vez?"
@@ -494,7 +495,7 @@ msgstr "Mais…"
 #: optimize_images_x/gui/settings_window.py:230
 #: optimize_images_x/gui/settings_window.py:687
 msgid "Image size reduction"
-msgstr "Redução do tamanho da imagem"
+msgstr "Redução de tamanho da imagem"
 
 #: optimize_images_x/gui/settings_window.py:234
 #: optimize_images_x/gui/settings_window.py:688
@@ -579,7 +580,7 @@ msgstr "Qualidade JPEG"
 #: optimize_images_x/gui/settings_window.py:358
 #: optimize_images_x/gui/settings_window.py:709
 msgid "Auto/Dynamic"
-msgstr "Automático/Dinâmico"
+msgstr "Auto/Dinâmico"
 
 #: optimize_images_x/gui/settings_window.py:363
 #: optimize_images_x/gui/settings_window.py:710
@@ -614,7 +615,7 @@ msgstr "Converter para:"
 #: optimize_images_x/gui/settings_window.py:434
 #: optimize_images_x/gui/settings_window.py:719
 msgid "Delete original file after conversion"
-msgstr "Eliminar ficheiro original após a conversão"
+msgstr "Eliminar ficheiro original após conversão"
 
 #: optimize_images_x/gui/settings_window.py:465
 #: optimize_images_x/gui/settings_window.py:722
@@ -674,7 +675,7 @@ msgstr "Interface do Utilizador"
 #: optimize_images_x/gui/settings_window.py:578
 #: optimize_images_x/gui/settings_window.py:739
 msgid "Reset app defaults"
-msgstr "Redefinir padrões da aplicação"
+msgstr "Repor padrões da aplicação"
 
 #: optimize_images_x/gui/settings_window.py:590
 #: optimize_images_x/gui/settings_window.py:740
@@ -684,7 +685,7 @@ msgstr "Idioma:"
 #: optimize_images_x/gui/settings_window.py:625
 #: optimize_images_x/gui/settings_window.py:741
 msgid "Reset all settings"
-msgstr "Redefinir todas as configurações"
+msgstr "Repor todas as definições"
 
 #: optimize_images_x/gui/settings_window.py:680
 msgid "JPEG"
@@ -700,7 +701,7 @@ msgstr "WebP"
 
 #: optimize_images_x/gui/settings_window.py:684
 msgid "More"
-msgstr "Mais…"
+msgstr "Mais"
 
 #: optimize_images_x/gui/settings_window.py:744
 msgid "Select background color"
@@ -720,7 +721,7 @@ msgstr ""
 
 #: optimize_images_x/gui/settings_window.py:897
 msgid "Reset all settings and restart?"
-msgstr "Redefinir todas as configurações e reiniciar?"
+msgstr "Repor todas as configurações e reiniciar?"
 
 #~ msgid ""
 #~ "As imagens largadas serão otimizadas no próprio local, substituindo os "

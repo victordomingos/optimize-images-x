@@ -1,6 +1,12 @@
 Version History:
 ================
 
+v.2.2.0 - 2026-08-20
+ * Added internationalization support, language settings, and translations
+   (some translations are still AI-generated, with some human verification
+   - please feel free to review the existing ones or to add your own!).
+ * Minor UI adjustments.    
+
 v.2.1.0 - 2026-07-07
  * Drag-and-drop support for images and folders (requires TkinterDnD2).
  * Added a spec file for PyInstaller. Now you can build a standalone executable

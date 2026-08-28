@@ -39,8 +39,7 @@ def main():
     app_stats.session_count += 1
     app_stats.save()
 
-    if app_settings.language:
-        change_language(app_settings.language)
+    change_language(app_settings.language or 'en')
 
     if DND_AVAILABLE:
         root = TkinterDnD.Tk()

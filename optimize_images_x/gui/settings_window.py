@@ -603,25 +603,26 @@ class SettingsWindow(ttk.Frame):
             'mwl': 'Mirandés',
             'pt': 'Português',
         }
-        lang_options = [lang_display.get(code, code) for code in lang_codes]
-        self.combo_language['values'] = lang_options
-        self._lang_codes = lang_codes
+        pairs = sorted(
+            ((code, lang_display.get(code, code)) for code in lang_codes),
+            key=lambda item: item[1].lower(),
+        )
+        self._lang_codes = [code for code, _ in pairs]
+        self.combo_language['values'] = [name for _, name in pairs]
 
-        # Set saved language as selected, fall back to system locale
+        # Set saved language as selected. English is the default on first run
+        # (no user preference yet); if the saved code is unknown, guess from
+        # the system locale, falling back to English.
         saved_lang = getattr(self.app_settings, 'language', None) or 'en'
-        if saved_lang in self._lang_codes:
-            self.combo_language.current(self._lang_codes.index(saved_lang))
-        else:
+        if saved_lang not in self._lang_codes:
             try:
                 import locale as loc_mod
-                current_loc = loc_mod.getlocale()[0] or 'en'
+                current_loc = loc_mod.getlocale()[0] or ''
                 short = current_loc.split('_')[0].lower()
-                if short in self._lang_codes:
-                    self.combo_language.current(self._lang_codes.index(short))
-                else:
-                    self.combo_language.current(0)
+                saved_lang = short if short in self._lang_codes else 'en'
             except Exception:
-                self.combo_language.current(0)
+                saved_lang = 'en'
+        self.combo_language.current(self._lang_codes.index(saved_lang))
 
         self.combo_language.grid(column=1, row=len(themes), sticky='w', pady=(10, 5))
         self.combo_language.bind('<<ComboboxSelected>>', self._on_language_changed)

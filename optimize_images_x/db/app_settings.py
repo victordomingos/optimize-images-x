@@ -35,7 +35,11 @@ class AppSettings:
         self.app_style = settings['app_style']
         self.last_opened_dir = settings['last_opened_dir']
         self.last_watched_dir = settings['last_watched_dir']
-        self.language = settings['language'] if 'language' in settings.keys() else 'en'
+        # English is the default: a missing column or an empty/NULL value
+        # (first run, never changed by the user) resolves to 'en'.
+        self.language = (settings['language'] or 'en') \
+            if 'language' in settings.keys() \
+            else 'en'
 
     def save(self):
         sql = """
